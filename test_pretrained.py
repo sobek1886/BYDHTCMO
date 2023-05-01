@@ -175,9 +175,10 @@ def evaluate_on_FCDB_and_FLMS(model, dataset='both', only_human=True):
             for batch_idx, batch_data in enumerate(tqdm(test_loader)):
                 im = batch_data[0].to(device)
                 gt_crop = batch_data[1]
-                part_mask = batch_data[2].to(device)
-                width = batch_data[3].item()
-                height = batch_data[4].item()
+                hbox = batch_data[2].to(device)
+                part_mask = batch_data[3].to(device)
+                width = batch_data[4].item()
+                height = batch_data[5].item()
 
                 crop = np.zeros((len(pdefined_anchors), 4), dtype=np.float32)
                 crop[:, 0::2] = pdefined_anchors[:, 0::2] * im.shape[-1]
@@ -186,7 +187,7 @@ def evaluate_on_FCDB_and_FLMS(model, dataset='both', only_human=True):
 
                 crop = torch.from_numpy(crop).unsqueeze(0).to(device)  # 1,n,4
                 crop_mask = torch.from_numpy(crop_mask).unsqueeze(0).to(device)
-                part_feat, heat_map, scores = model(im, crop, crop_mask, part_mask)
+                part_feat, heat_map, scores = model(im, crop, hbox, crop_mask, part_mask)
                 # get best crop
                 scores = scores.reshape(-1).cpu().detach().numpy()
                 idx = np.argmax(scores)
@@ -255,8 +256,8 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load('trained_model.pt'))
     model = model.eval().to(device)
 
-    evaluate_on_GAICD(model, only_human=False)
+    #evaluate_on_GAICD(model, only_human=False)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
-    # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
+    evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FLMS', only_human=False)

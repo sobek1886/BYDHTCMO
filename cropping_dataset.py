@@ -280,7 +280,8 @@ class FCDBDataset(Dataset):
         try:
           assert os.path.exists(image_file), image_file
         except AssertionError:
-          pass
+          print(f"Skipping missing image file: {image_file}")
+          return None
         image = Image.open(image_file).convert('RGB')
         im_width, im_height = image.size
         if self.keep_aspect:
