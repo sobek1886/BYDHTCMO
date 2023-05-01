@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    data_root = '/workspace/aesthetic_cropping/human_centric/dataset/'
+    data_root = '/content/Fork-Human-Centric-Image-Cropping/human_bboxes'
     # the pre-defined candidate crops are downloaded from:
     # https://github.com/luwr1022/listwise-view-ranking/blob/master/pdefined_anchors.pkl
     predefined_pkl = os.path.join(data_root, 'pdefined_anchors.pkl')
@@ -11,7 +11,7 @@ class Config:
     CPC_human = os.path.join(CPC_path,  'human_bboxes.json')
 
     FCDB_path = os.path.join(data_root, 'FCDB')
-    FCDB_image= os.path.join(FCDB_path, 'data')
+    FCDB_image= os.path.join(FCDB_path, 'flickr-cropping-dataset/data')
     FCDB_anno = os.path.join(FCDB_path, 'image_crop.json')
     FCDB_human= os.path.join(FCDB_path, 'human_bboxes.json')
     FCDB_split= os.path.join(FCDB_path, 'data_split.json')
@@ -28,7 +28,7 @@ class Config:
     GAIC_split= os.path.join(GAIC_path, 'original_data_split.json')
     GAIC_human_split = os.path.join(GAIC_path, 'human_data_split.json')
 
-    heat_map_dir = '/workspace/aesthetic_cropping/human_centric/code/heat_map/heat_map_gt'
+    heat_map_dir = '/content/Fork-Human-Centric-Image-Cropping/heat_map_gt'
     CPC_heat_map = os.path.join(heat_map_dir, 'CPC', 'mask')
     GAIC_heat_map= os.path.join(heat_map_dir, 'GAICD', 'mask')
 
