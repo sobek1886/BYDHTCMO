@@ -13,7 +13,7 @@ from scipy.stats import spearmanr, pearsonr
 import torch.backends.cudnn as cudnn
 import math
 import torchvision.transforms as transforms
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from cropping_dataset import FCDBDataset, FLMSDataset, GAICDataset, generate_target_size_crop_mask
 from config_GAICD import cfg
@@ -195,8 +195,10 @@ def evaluate_on_FCDB_and_FLMS(model, dataset='both', only_human=True):
                 pred_y1 = int(pdefined_anchors[idx][1] * height)
                 pred_x2 = int(pdefined_anchors[idx][2] * width)
                 pred_y2 = int(pdefined_anchors[idx][3] * height)
+                #print(pred_x1,pred_y1,pred_x2,pred_y2)
                 pred_crop = torch.tensor([[pred_x1, pred_y1, pred_x2, pred_y2]])
                 gt_crop   = gt_crop.reshape(-1,4)
+                #print(pred_crop, gt_crop)
 
                 iou, disp = compute_iou_and_disp(gt_crop, pred_crop, width, height)
                 if iou >= alpha:
