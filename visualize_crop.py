@@ -38,8 +38,8 @@ def crop_image(image_path, keep_aspect = False):
     image_file = image_path
     assert os.path.exists(image_file), image_file
     image = Image.open(image_file).convert('RGB')
-    print('Image pre-crop:')
-    image.show()
+    image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original.png')
+
     im_width, im_height = image.size
     if keep_aspect:
         scale = float(cfg.image_size[0]) / min(im_height, im_width)
@@ -73,7 +73,10 @@ def crop_image(image_path, keep_aspect = False):
 
     crop = torch.from_numpy(crop).unsqueeze(0).to(device)  # 1,n,4
     crop_mask = torch.from_numpy(crop_mask).unsqueeze(0).to(device)
-    part_feat, heat_map, scores = model(im, crop, hbox, crop_mask, part_mask)
+    im_deviced = im.unsqueeze(0).to(device)
+    hbox_deviced = torch.from_numpy(hbox).unsqueeze(0).to(device)
+    part_mask_deviced = torch.from_numpy(part_mask).unsqueeze(0).to(device)
+    part_feat, heat_map, scores = model(im_deviced, crop, hbox_deviced, crop_mask, part_mask_deviced)
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)
@@ -87,11 +90,12 @@ def crop_image(image_path, keep_aspect = False):
     draw = ImageDraw.Draw(image_copy)
     # Draw a rectangle on the image copy
     draw.rectangle((pred_x1, pred_y1, pred_x2, pred_y2), outline='red')
+    image_copy.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/crop_visualized.png')
     # Display the image copy
-    print('crop visualized')
-    image_copy.show()
+    #print('crop visualized')
+    #image_copy.show()
 
-    return 1
+    return print(1)
 
 
 if __name__ == '__main__':
