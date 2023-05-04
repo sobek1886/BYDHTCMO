@@ -16,6 +16,7 @@ from config_GAICD import cfg
 from cropping_dataset import generate_partition_mask, generate_target_size_crop_mask
 from test_pretrained import get_pdefined_anchor
 from cropping_model import HumanCentricCroppingModel
+from outpaint import outpaint_image
 import sys
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
@@ -25,19 +26,28 @@ MOS_STD  = 0.8
 IMAGE_NET_MEAN = [0.485, 0.456, 0.406]
 IMAGE_NET_STD = [0.229, 0.224, 0.225]
 
-def crop_image(image_path, keep_aspect = False):
-
+def crop_image(image):
+    keep_aspect = False
     crop_mask_downsample = 4
     human_mask_downsample = 16
     image_transformer = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)])
+
+    model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
+    model.load_state_dict(torch.load('trained_model.pt'))
+    model = model.eval().to(device)
     
     #image_name = self.image_list[index]
     #image_file = os.path.join(self.image_dir, image_name)
-    image_file = image_path
-    assert os.path.exists(image_file), image_file
-    image = Image.open(image_file).convert('RGB')
+    #image_file = image_path
+    #assert os.path.exists(image_file), image_file
+    if type(image) == str:  # input_image is a URL
+      image = Image.open(image).convert('RGB')
+    elif isinstance(image, Image.Image): # input_image is already a PIL Image object
+      pass
+    else:  # input_image is a numpy ndarray # for gradio
+      image = Image.fromarray(image)
     image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original.png')
 
     im_width, im_height = image.size
@@ -87,15 +97,26 @@ def crop_image(image_path, keep_aspect = False):
 
     image_copy = image.copy()
     # Create a draw object
-    draw = ImageDraw.Draw(image_copy)
+    #draw = ImageDraw.Draw(image_copy)
     # Draw a rectangle on the image copy
-    draw.rectangle((pred_x1, pred_y1, pred_x2, pred_y2), outline='red')
-    image_copy.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/crop_visualized.png')
+    #draw.rectangle((pred_x1, pred_y1, pred_x2, pred_y2), outline='red')
+    #image_copy.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/crop_visualized.png')
     # Display the image copy
     #print('crop visualized')
     #image_copy.show()
 
-    return print(1)
+    # Crop the image
+    cropped_image = image_copy.crop((pred_x1, pred_y1, pred_x2, pred_y2))
+    # Save the cropped image
+    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/cropped_image.png')
+    print(type(cropped_image))
+    make_square = True
+    if make_square:
+      squared_image = outpaint_image(cropped_image)
+      squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/squared_image.png')
+      return squared_image
+    else:
+      return cropped_image
 
 
 if __name__ == '__main__':
@@ -106,13 +127,14 @@ if __name__ == '__main__':
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
 
-    model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
-    model.load_state_dict(torch.load('trained_model.pt'))
-    model = model.eval().to(device)
     
     #print(sys.argv[1:])
     #for image_path in sys.argv[1:]:
-    image = '/content/Fork-Human-Centric-Image-Cropping/human_bboxes/FCDB/data/10003475154_f6a656262c_c.jpg'
+    image = '/content/Fork-Human-Centric-Image-Cropping/human_bboxes/FCDB/data/11966278053_9451dc7865_c.jpg'
+    
+    image = Image.open(image)
+    image = np.array(image)
+    print(type(image))
     #image = f"'{image_path}'"
-    print(image)
+    #print(image)
     crop_image(image)

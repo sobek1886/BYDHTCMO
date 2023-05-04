@@ -38,6 +38,8 @@ def outpaint_image(image):
 
   if type(image) == str:  # input_image is a URL
     image = Image.open(image)
+  elif isinstance(image, Image.Image): # input_image is already a PIL Image object
+      pass
   else:  # input_image is a numpy ndarray # for gradio
     image = Image.fromarray(image)
 
@@ -60,6 +62,7 @@ def outpaint_image(image):
   outpainted = images[1]
   result = paste_original(image, outpainted)
   result.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/outpainted.png')
+  print(type(result))
   return result
 
 def get_masks(input_image):
@@ -115,8 +118,8 @@ def paste_original(original_image, outpainted):
   return outpainted
 
 if __name__ == '__main__':
-  argument_list = sys.argv
-  image = f"'{argument_list[1]}'"
-  outpaint_image(image)
-  #outpaint_image('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original.png')
+  #argument_list = sys.argv
+  #image = f"'{argument_list[1]}'"
+  #outpaint_image(image)
+  outpaint_image('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original.png')
 
