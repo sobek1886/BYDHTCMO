@@ -112,7 +112,7 @@ if __name__ == '__main__':
     
     #print(sys.argv[1:])
     #for image_path in sys.argv[1:]:
-    image = '/content/Fork-Human-Centric-Image-Cropping/human_bboxes/FCDB/flickr-cropping-dataset/data/10003475154_f6a656262c_c.jpg'
+    image = '/content/Fork-Human-Centric-Image-Cropping/human_bboxes/FCDB/data/10003475154_f6a656262c_c.jpg'
     #image = f"'{image_path}'"
     print(image)
     crop_image(image)

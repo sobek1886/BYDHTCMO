@@ -11,7 +11,7 @@ class Config:
     CPC_human = os.path.join(CPC_path,  'human_bboxes.json')
 
     FCDB_path = os.path.join(data_root, 'FCDB')
-    FCDB_image= os.path.join(FCDB_path, 'flickr-cropping-dataset/data')
+    FCDB_image= os.path.join(FCDB_path, 'data')
     FCDB_anno = os.path.join(FCDB_path, 'image_crop.json')
     FCDB_human= os.path.join(FCDB_path, 'human_bboxes.json')
     FCDB_split= os.path.join(FCDB_path, 'data_split.json')
