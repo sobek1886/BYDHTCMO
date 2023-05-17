@@ -16,7 +16,7 @@ from config_GAICD import cfg
 from cropping_dataset import generate_partition_mask, generate_target_size_crop_mask
 from test_pretrained import get_pdefined_anchor
 from cropping_model import HumanCentricCroppingModel
-from outpaint import outpaint_image
+#from outpaint import outpaint_image
 import sys
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
@@ -68,6 +68,7 @@ def crop_image(image):
         hbox = rescale_bbox(hbox, ratio_w, ratio_h)
     else:'''
     hbox = np.array([[-1, -1, -1, -1]]).astype(np.float32)
+
     part_mask = generate_partition_mask(hbox, rs_width, rs_height,
                                                  human_mask_downsample)
 
@@ -87,6 +88,8 @@ def crop_image(image):
     hbox_deviced = torch.from_numpy(hbox).unsqueeze(0).to(device)
     part_mask_deviced = torch.from_numpy(part_mask).unsqueeze(0).to(device)
     part_feat, heat_map, scores = model(im_deviced, crop, hbox_deviced, crop_mask, part_mask_deviced)
+    
+
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)
@@ -94,6 +97,10 @@ def crop_image(image):
     pred_y1 = int(pdefined_anchors[idx][1] * im_height)
     pred_x2 = int(pdefined_anchors[idx][2] * im_width)
     pred_y2 = int(pdefined_anchors[idx][3] * im_height)
+
+    print(heat_map.size())
+    print('Heatmap of best scoring crop?')
+    print(heat_map[0][idx])
 
     image_copy = image.copy()
     # Create a draw object
@@ -109,8 +116,8 @@ def crop_image(image):
     cropped_image = image_copy.crop((pred_x1, pred_y1, pred_x2, pred_y2))
     # Save the cropped image
     cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/cropped_image.png')
-    print(type(cropped_image))
-    make_square = True
+    
+    make_square = False
     if make_square:
       squared_image = outpaint_image(cropped_image)
       squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/squared_image.png')
