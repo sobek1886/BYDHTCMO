@@ -258,8 +258,8 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load('trained_model.pt'))
     model = model.eval().to(device)
 
-    #evaluate_on_GAICD(model, only_human=False)
+    evaluate_on_GAICD(model, only_human=False)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
-    evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
+    # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FLMS', only_human=False)

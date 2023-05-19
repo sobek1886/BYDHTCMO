@@ -61,7 +61,7 @@ class Config:
 
     batch_size  = 1
     lr_scheduler= 'cosine'
-    max_epoch = 80
+    max_epoch = 100
     lr_decay_epoch = [max_epoch + 1]
     eval_freq = 1
 

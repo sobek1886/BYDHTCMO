@@ -1,3 +1,4 @@
+
 import os
 import cv2
 import numpy as np
@@ -35,7 +36,7 @@ def crop_image(image):
             transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)])
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
-    model.load_state_dict(torch.load('trained_model.pt'))
+    model.load_state_dict(torch.load('trained_model_100epochs.pt'))
     model = model.eval().to(device)
     
     #image_name = self.image_list[index]
@@ -60,6 +61,7 @@ def crop_image(image):
         w = cfg.image_size[0]
     resized_image = image.resize((w, h), Image.ANTIALIAS)
     im = image_transformer(resized_image)
+    #print(im)
     rs_width, rs_height = resized_image.size
     ratio_h = float(rs_height) / im_height
     ratio_w = float(rs_width) / im_width
@@ -67,7 +69,9 @@ def crop_image(image):
         hbox = self.human_bboxes[image_name]
         hbox = rescale_bbox(hbox, ratio_w, ratio_h)
     else:'''
-    hbox = np.array([[-1, -1, -1, -1]]).astype(np.float32)
+    #hbox = np.array([[-1, -1, -1, -1]]).astype(np.float32)
+    hbox = np.array([[1, 28, 486, 549]]).astype(np.float32)
+    
 
     part_mask = generate_partition_mask(hbox, rs_width, rs_height,
                                                  human_mask_downsample)
@@ -85,11 +89,12 @@ def crop_image(image):
     crop = torch.from_numpy(crop).unsqueeze(0).to(device)  # 1,n,4
     crop_mask = torch.from_numpy(crop_mask).unsqueeze(0).to(device)
     im_deviced = im.unsqueeze(0).to(device)
+    #print(im_deviced.size())
     hbox_deviced = torch.from_numpy(hbox).unsqueeze(0).to(device)
     part_mask_deviced = torch.from_numpy(part_mask).unsqueeze(0).to(device)
+
     part_feat, heat_map, scores = model(im_deviced, crop, hbox_deviced, crop_mask, part_mask_deviced)
     
-
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)
@@ -99,8 +104,9 @@ def crop_image(image):
     pred_y2 = int(pdefined_anchors[idx][3] * im_height)
 
     print(heat_map.size())
-    print('Heatmap of best scoring crop?')
-    print(heat_map[0][idx])
+    print(heat_map)
+    print(torch.max(heat_map[0][0]))
+    print(torch.min(heat_map[0][0]))
 
     image_copy = image.copy()
     # Create a draw object
@@ -115,7 +121,7 @@ def crop_image(image):
     # Crop the image
     cropped_image = image_copy.crop((pred_x1, pred_y1, pred_x2, pred_y2))
     # Save the cropped image
-    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/cropped_image.png')
+    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/bbox_given_cropped_image.png')
     
     make_square = False
     if make_square:
@@ -123,7 +129,8 @@ def crop_image(image):
       squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/squared_image.png')
       return squared_image
     else:
-      return cropped_image
+      #return cropped_image
+      return heat_map
 
 
 if __name__ == '__main__':
