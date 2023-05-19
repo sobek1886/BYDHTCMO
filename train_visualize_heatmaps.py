@@ -174,12 +174,12 @@ class Trainer:
             pre_patition, pred_heat_map, pred_score = self.model(im, rois, human_box, crop_mask, part_mask)
 
 
-
-            # ----------------------visualizing heat_map--------------------
-            im_copy = im.squeeze()
-            pred_heat_map_copy = pred_heat_map.squeeze()
-            heat_map_copy = heat_map.squeeze()
-            self.visualize_heat_map(im_copy, pred_heat_map_copy, heat_map_copy)
+            if self.epoch >= 45:
+              # ----------------------visualizing heat_map--------------------
+              im_copy = im.squeeze()
+              pred_heat_map_copy = pred_heat_map.squeeze()
+              heat_map_copy = heat_map.squeeze()
+              self.visualize_heat_map(im_copy, pred_heat_map_copy, heat_map_copy)
 
 
 

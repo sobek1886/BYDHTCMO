@@ -17,7 +17,6 @@ from config_GAICD import cfg
 from cropping_dataset import generate_partition_mask, generate_target_size_crop_mask
 from test_pretrained import get_pdefined_anchor
 from cropping_model import HumanCentricCroppingModel
-from train_on_GAICD import visualize_heat_map
 #from outpaint import outpaint_image
 import sys
 
@@ -98,7 +97,7 @@ def crop_image(image):
     part_feat, heat_map, scores = model(im_deviced, crop, hbox_deviced, crop_mask, part_mask_deviced)
 
     # visualize heat map
-    visualize_heat_map(im, heat_map, heat_map)
+    visualize_heat_map(im, heat_map)
 
 
 
@@ -136,9 +135,24 @@ def crop_image(image):
       squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/squared_image.png')
       return squared_image
     else:
-      #return cropped_image
-      return heat_map
+      return cropped_image
 
+def visualize_heat_map(im, pre_heat):
+    im = im.squeeze()
+    pre_heat = pre_heat.squeeze()
+    im = im.detach().cpu()
+    pre_heat = pre_heat.detach().cpu()
+    im = im * torch.tensor(IMAGE_NET_STD).view(3,1,1) + torch.tensor(IMAGE_NET_MEAN).view(3,1,1)
+    trans_fn = transforms.ToPILImage()
+    im = trans_fn(im).convert('RGB')
+    width, height = im.size
+    pre_heat = trans_fn(pre_heat).convert('RGB').resize((width,height))
+    ver_band = (np.ones((height,5,3)) * 255).astype(np.uint8)
+    cat_im   = np.concatenate([np.asarray(im), ver_band, np.asarray(pre_heat)], axis=1)
+    cat_im   = Image.fromarray(cat_im)
+    fig_dir  = os.path.join(cfg.exp_path, 'visualization')
+    os.makedirs(fig_dir,exist_ok=True)
+    cat_im.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/heatmap2.png')
 
 if __name__ == '__main__':
     from config_GAICD import cfg
@@ -151,7 +165,7 @@ if __name__ == '__main__':
     
     #print(sys.argv[1:])
     #for image_path in sys.argv[1:]:
-    image = '/content/Fork-Human-Centric-Image-Cropping/human_bboxes/FCDB/data/11966278053_9451dc7865_c.jpg'
+    image = '/content/GAIC_280712.jpg'
     
     image = Image.open(image)
     image = np.array(image)
