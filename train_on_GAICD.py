@@ -172,6 +172,7 @@ class Trainer:
             score = score[:,chosen_ID]
 
             pre_patition, pred_heat_map, pred_score = self.model(im, rois, human_box, crop_mask, part_mask)
+
             score_loss = None
             for loss_type in self.score_loss_type:
                 if loss_type == 'L1Loss':
