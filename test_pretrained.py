@@ -248,18 +248,21 @@ def weight_translate():
 
 if __name__ == '__main__':
     from config_GAICD import cfg
-    cfg.use_partition_aware = True
+    cfg.use_partition_aware = False
     cfg.partition_aware_type = 9
     cfg.use_content_preserve = True
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
-    model.load_state_dict(torch.load('trained_model.pt'))
+    #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_PA_CP_repeat8/checkpoints/best-human_srcc.pth'))
+    #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/30epochs/checkpoints/best-srcc.pth'))
+    model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_CP/checkpoints/best-srcc.pth'))
+
     model = model.eval().to(device)
 
     evaluate_on_GAICD(model, only_human=False)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
-    # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
+    #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FLMS', only_human=False)

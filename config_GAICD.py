@@ -45,7 +45,8 @@ class Config:
     data_augmentation = True
     keep_aspect_ratio = True
 
-    use_partition_aware = True
+    # True by default
+    use_partition_aware = False
     partition_aware_type = 9  # [0,1,2,9]
     concat_with_human   = True
     visualize_partition_feature = False
@@ -54,14 +55,14 @@ class Config:
     only_content_preserve = False
     content_preserve_type = 'gcn'
     content_loss_weight   = 1.
-    visualize_heat_map    = False
+    visualize_heat_map    = True
 
     use_rod_feature = True
     reduced_dim = 32
 
     batch_size  = 1
     lr_scheduler= 'cosine'
-    max_epoch = 50
+    max_epoch = 30
     lr_decay_epoch = [max_epoch + 1]
     eval_freq = 1
 

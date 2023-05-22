@@ -36,7 +36,7 @@ def crop_image(image):
             transforms.Normalize(mean=IMAGE_NET_MEAN, std=IMAGE_NET_STD)])
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
-    model.load_state_dict(torch.load('trained_model_100epochs.pt'))
+    model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/30epochs/checkpoints/best-srcc.pth'))
     model = model.eval().to(device)
     
     #image_name = self.image_list[index]
@@ -108,11 +108,6 @@ def crop_image(image):
     pred_y1 = int(pdefined_anchors[idx][1] * im_height)
     pred_x2 = int(pdefined_anchors[idx][2] * im_width)
     pred_y2 = int(pdefined_anchors[idx][3] * im_height)
-
-    print(heat_map.size())
-    print(heat_map)
-    print(torch.max(heat_map[0][0]))
-    print(torch.min(heat_map[0][0]))
 
     image_copy = image.copy()
     # Create a draw object
