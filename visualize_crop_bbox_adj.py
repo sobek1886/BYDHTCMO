@@ -1,4 +1,3 @@
-
 import os
 import cv2
 import numpy as np
@@ -17,6 +16,10 @@ from config_GAICD import cfg
 from cropping_dataset import generate_partition_mask, generate_target_size_crop_mask, rescale_bbox
 from test_pretrained import get_pdefined_anchor
 from cropping_model import HumanCentricCroppingModel
+from BBox_adjusting import RegionDetector
+from BBox_adjusting import BoundingBox
+from super_gradients.common.object_names import Models
+from super_gradients.training import models
 #from outpaint import outpaint_image
 import sys
 
@@ -61,7 +64,6 @@ def crop_image(image):
         w = cfg.image_size[0]
     resized_image = image.resize((w, h), Image.ANTIALIAS)
     im = image_transformer(resized_image)
-    #print(im)
     rs_width, rs_height = resized_image.size
     ratio_h = float(rs_height) / im_height
     ratio_w = float(rs_width) / im_width
@@ -71,15 +73,11 @@ def crop_image(image):
     else:'''
     #hbox = np.array([[-1, -1, -1, -1]]).astype(np.float32)
     hbox = np.array([[1, 28, 486, 549]]).astype(np.float32)
-    #hbox = rescale_bbox(hbox, ratio_w, ratio_h)
+    hbox = rescale_bbox(hbox, ratio_w, ratio_h)
     
 
     part_mask = generate_partition_mask(hbox, rs_width, rs_height,
                                                  human_mask_downsample)
-
-    #crop = self.annotations[image_name]
-    #x,y,w,h = crop
-    #crop = torch.tensor([x,y,x+w,y+h])
 
     pdefined_anchors = get_pdefined_anchor() # n,4, (x1,y1,x2,y2)
     crop = np.zeros((len(pdefined_anchors), 4), dtype=np.float32)
@@ -90,7 +88,6 @@ def crop_image(image):
     crop = torch.from_numpy(crop).unsqueeze(0).to(device)  # 1,n,4
     crop_mask = torch.from_numpy(crop_mask).unsqueeze(0).to(device)
     im_deviced = im.unsqueeze(0).to(device)
-    #print(im_deviced.size())
     hbox_deviced = torch.from_numpy(hbox).unsqueeze(0).to(device)
     part_mask_deviced = torch.from_numpy(part_mask).unsqueeze(0).to(device)
 
@@ -100,8 +97,6 @@ def crop_image(image):
     # visualize heat map
     visualize_heat_map(im, heat_map)
 
-
-
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)
@@ -110,20 +105,26 @@ def crop_image(image):
     pred_x2 = int(pdefined_anchors[idx][2] * im_width)
     pred_y2 = int(pdefined_anchors[idx][3] * im_height)
 
-    image_copy = image.copy()
-    # Create a draw object
-    #draw = ImageDraw.Draw(image_copy)
-    # Draw a rectangle on the image copy
-    #draw.rectangle((pred_x1, pred_y1, pred_x2, pred_y2), outline='red')
-    #image_copy.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/crop_visualized.png')
-    # Display the image copy
-    #print('crop visualized')
-    #image_copy.show()
+    bbox_adjusting = True
+    if bbox_adjusting == True:
+      # get most important region for bbox adjusting
+      most_important_region = [pred_x1, pred_y1, pred_x2, pred_y2]
+      region_detector = RegionDetector(image)
+      YOLO_predictions = region_detector.YOLO_prediction()
+      detected_objects = region_detector.detect_objects(YOLO_predictions)
+      most_important_region = BoundingBox(most_important_region)
+      objects_in_region = region_detector.determine_objects_in_region(detected_objects, most_important_region)
+      expanded_region = region_detector.expand_most_important_region(objects_in_region, most_important_region)
+      pred_x1, pred_y1, pred_x2, pred_y2 = expanded_region
+      cropped_image = image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
+    else:
+      # Crop the image
+      cropped_image = image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
 
-    # Crop the image
-    cropped_image = image_copy.crop((pred_x1, pred_y1, pred_x2, pred_y2))
+    #image_copy = image.copy()
+
     # Save the cropped image
-    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/bbox_given_cropped_image2.png')
+    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/adjusted_cropped_image.png')
     
     make_square = False
     if make_square:
