@@ -79,11 +79,13 @@ def crop_image(image):
     part_mask = generate_partition_mask(hbox, rs_width, rs_height,
                                                  human_mask_downsample)
 
-    pdefined_anchors = get_pdefined_anchor(make_square = True) # n,4, (x1,y1,x2,y2)
+    pdefined_anchors = get_pdefined_anchor() # n,4, (x1,y1,x2,y2)
 
     crop = np.zeros((len(pdefined_anchors), 4), dtype=np.float32)
+    print(f"before:\n {pdefined_anchors[:15,:]}")
     crop[:, 0::2] = pdefined_anchors[:, 0::2] * im.shape[-1]
     crop[:, 1::2] = pdefined_anchors[:, 1::2] * im.shape[-2]
+    print(f"after:\n {crop[:15,:]}")
     crop_mask = generate_target_size_crop_mask(crop, im.shape[-1], im.shape[-2], 64, 64)
 
     #send to device
@@ -99,28 +101,31 @@ def crop_image(image):
     # visualize heat map
     visualize_heat_map(im, heat_map)
 
+    # Calculate the aspect ratio of the image
+    im_aspect_ratio = (im_width)/(im_height)
+
+    # filter anchors based on aspect ratio requirement
+    filtered_indexes = [index for index, coord in enumerate(pdefined_anchors) if (abs(1 - ((coord[2] - coord[0] / coord[3] - coord[1])*im_aspect_ratio)) <= 0.01)]
+    '''for coord in pdefined_anchors:
+      new_ratio = ((coord[2] - coord[0] / coord[3] - coord[1])*im_aspect_ratio)
+      if abs(1-new_ratio) <= 0.01:
+        print(new_ratio)'''
+
+    print(f"filtered_indexes: {filtered_indexes}")
+    filtered_anchors = pdefined_anchors[filtered_indexes]
+
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
-    idx = np.argmax(scores)
+    filtered_scores = scores[filtered_indexes]  # Select scores corresponding to filtered_indexes
+    print(f"filtered_scores:{filtered_scores}")
+    #idx = np.argmax(filtered_scores)
+    idx = filtered_indexes[np.argmax(filtered_scores)]  # Get the index with the highest score among filtered_indexes
+    print(f"idx: {idx}")
 
-    # Retrieve the anchor with the highest score
-    best_anchor = pdefined_anchors[idx]
-
-    # Calculate the aspect ratio of the anchor
-    anchor_aspect_ratio = (best_anchor[2] - best_anchor[0]) / (best_anchor[3] - best_anchor[1])
-
-    # Calculate the scaled crop dimensions while maintaining the aspect ratio
-    crop_width = np.where(anchor_aspect_ratio >= 1.0, anchor_aspect_ratio, 1.0)
-    crop_height = np.where(anchor_aspect_ratio < 1.0, 1.0 / anchor_aspect_ratio, 1.0)
-
-    # Calculate the scaled crop width and height based on the image dimensions
-    scaled_crop_width = crop_width * im_width
-    scaled_crop_height = crop_height * im_height
-
-    pred_x1 = int(pdefined_anchors[idx][0] * scaled_crop_width)
-    pred_y1 = int(pdefined_anchors[idx][1] * scaled_crop_height)
-    pred_x2 = int(pdefined_anchors[idx][2] * scaled_crop_width)
-    pred_y2 = int(pdefined_anchors[idx][3] * scaled_crop_height)
+    pred_x1 = int(pdefined_anchors[idx][0] * im_width)
+    pred_y1 = int(pdefined_anchors[idx][1] * im_height)
+    pred_x2 = int(pdefined_anchors[idx][2] * im_width)
+    pred_y2 = int(pdefined_anchors[idx][3] * im_height)
 
     bbox_adjusting = False
     if bbox_adjusting == True:

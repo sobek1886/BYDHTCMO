@@ -120,7 +120,13 @@ def evaluate_on_GAICD(model, only_human=True):
     ))
     return srcc, acc5, acc10
 
-def get_pdefined_anchor(make_square):
+def get_pdefined_anchor():
+    # get predefined boxes(x1, y1, x2, y2)
+    pdefined_anchors = np.array(pickle.load(open(cfg.predefined_pkl, 'rb'), encoding='iso-8859-1')).astype(np.float32)
+    print('num of pre-defined anchors: ', pdefined_anchors.shape)
+    return pdefined_anchors
+
+'''def get_pdefined_anchor(make_square):
     # get predefined boxes(x1, y1, x2, y2)
     pdefined_anchors = np.array(pickle.load(open(cfg.predefined_pkl, 'rb'), encoding='iso-8859-1')).astype(np.float32)
     if make_square == True:
@@ -131,7 +137,7 @@ def get_pdefined_anchor(make_square):
       return filtered_anchors
     else:
       print('num of pre-defined anchors: ', pdefined_anchors.shape)
-      return pdefined_anchors
+      return pdefined_anchors'''
 
 def get_pdefined_anchor_v1(im_w, im_h):
     bins = 12.0

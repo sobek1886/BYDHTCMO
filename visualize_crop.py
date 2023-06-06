@@ -123,12 +123,12 @@ def crop_image(image):
     # Crop the image
     cropped_image = image_copy.crop((pred_x1, pred_y1, pred_x2, pred_y2))
     # Save the cropped image
-    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/bbox_given_cropped_image2.png')
+    cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/visualise_crop.jpg')
     
     make_square = False
     if make_square:
       squared_image = outpaint_image(cropped_image)
-      squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/squared_image.png')
+      squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/visualise_crop.jpg')
       return squared_image
     else:
       return cropped_image
