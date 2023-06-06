@@ -102,10 +102,25 @@ def crop_image(image):
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)
-    pred_x1 = int(pdefined_anchors[idx][0] * im_width)
-    pred_y1 = int(pdefined_anchors[idx][1] * im_height)
-    pred_x2 = int(pdefined_anchors[idx][2] * im_width)
-    pred_y2 = int(pdefined_anchors[idx][3] * im_height)
+
+    # Retrieve the anchor with the highest score
+    best_anchor = pdefined_anchors[idx]
+
+    # Calculate the aspect ratio of the anchor
+    anchor_aspect_ratio = (best_anchor[2] - best_anchor[0]) / (best_anchor[3] - best_anchor[1])
+
+    # Calculate the scaled crop dimensions while maintaining the aspect ratio
+    crop_width = np.where(anchor_aspect_ratio >= 1.0, anchor_aspect_ratio, 1.0)
+    crop_height = np.where(anchor_aspect_ratio < 1.0, 1.0 / anchor_aspect_ratio, 1.0)
+
+    # Calculate the scaled crop width and height based on the image dimensions
+    scaled_crop_width = crop_width * im_width
+    scaled_crop_height = crop_height * im_height
+
+    pred_x1 = int(pdefined_anchors[idx][0] * scaled_crop_width)
+    pred_y1 = int(pdefined_anchors[idx][1] * scaled_crop_height)
+    pred_x2 = int(pdefined_anchors[idx][2] * scaled_crop_width)
+    pred_y2 = int(pdefined_anchors[idx][3] * scaled_crop_height)
 
     bbox_adjusting = False
     if bbox_adjusting == True:
