@@ -370,8 +370,9 @@ class FLMSDataset(Dataset):
 
 class GAICDataset(Dataset):
     def __init__(self, only_human_images=False, split='all',
-                 keep_aspect_ratio=True):
+                 keep_aspect_ratio=True, only_square_anchors = False):
         self.only_human = only_human_images
+        self.only_square_anchors = only_square_anchors
         self.split = split
         self.keep_aspect = keep_aspect_ratio
         self.image_size = cfg.image_size
@@ -379,13 +380,19 @@ class GAICDataset(Dataset):
         self.heat_map_dir = cfg.GAIC_heat_map
         assert os.path.exists(self.image_dir), self.image_dir
         self.human_bboxes = json.load(open(cfg.GAIC_human, 'r'))
-        self.annotations  = json.load(open(cfg.GAIC_anno, 'r'))
-        self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
+        if self.only_square_anchors:
+          self.annotations  = json.load(open(cfg.GAIC_test_square, 'r'))
+          self.data_split = json.load(open(cfg.GAIC_test_square_list, 'r'))
+        else:
+          self.annotations  = json.load(open(cfg.GAIC_anno, 'r'))
+          self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
         if self.only_human:
             if self.split == 'all':
                 self.image_list = list(self.human_bboxes.keys())
             else:
                 self.image_list = json.load(open(cfg.GAIC_human_split, 'r'))[self.split]
+        elif self.only_square_anchors:
+          self.image_list = self.data_split
         else:
             if self.split == 'all':
                 self.image_list = self.data_split['test'] + self.data_split['train']

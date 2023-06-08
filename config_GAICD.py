@@ -27,6 +27,8 @@ class Config:
     GAIC_human= os.path.join(GAIC_path, 'human_bboxes.json')
     GAIC_split= os.path.join(GAIC_path, 'original_data_split.json')
     GAIC_human_split = os.path.join(GAIC_path, 'human_data_split.json')
+    GAIC_test_square = os.path.join(GAIC_path, 'test_images_with_square_anchors.json')
+    GAIC_test_square_list = os.path.join(GAIC_path, 'test_image_list_square_anchors.json')
 
     heat_map_dir = '/content/Fork-Human-Centric-Image-Cropping/heat_map_gt'
     CPC_heat_map = os.path.join(heat_map_dir, 'CPC', 'mask')

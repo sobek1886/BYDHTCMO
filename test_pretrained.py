@@ -52,6 +52,34 @@ def compute_acc(gt_scores, pr_scores):
     avg_acc4_10 = sum(acc4_10) / len(acc4_10)
     return avg_acc4_5, avg_acc4_10
 
+'''def compute_acc(gt_scores, pr_scores):
+    assert (len(gt_scores) == len(pr_scores)), '{} vs. {}'.format(len(gt_scores), len(pr_scores))
+    sample_cnt = 0
+    acc1_5  = [0 for i in range(1)]
+    acc1_10 = [0 for i in range(1)]
+    for i in range(len(gt_scores)):
+        gts, preds = gt_scores[i], pr_scores[i]
+        id_gt = sorted(range(len(gts)), key=lambda j : gts[j], reverse=True)
+        id_pr = sorted(range(len(preds)), key=lambda j : preds[j], reverse=True)
+        for k in range(1):
+            temp_acc1_5  = 0.
+            temp_acc1_10 = 0.
+            for j in range(k+1):
+                if gts[id_pr[j]] >= gts[id_gt[4]]:
+                    temp_acc1_5 += 1.0
+                if gts[id_pr[j]] >= gts[id_gt[9]]:
+                    temp_acc1_10 += 1.0
+            acc1_5[k]  += (temp_acc1_5 / (k+1.0))
+            acc1_10[k] += ((temp_acc1_10) / (k+1.0))
+        sample_cnt += 1
+    acc1_5  = [i / sample_cnt for i in acc1_5]
+    acc1_10 = [i / sample_cnt for i in acc1_10]
+    # print('acc4_5', acc4_5)
+    # print('acc4_10', acc4_10)
+    avg_acc1_5  = sum(acc1_5)  / len(acc1_5)
+    avg_acc1_10 = sum(acc1_10) / len(acc1_10)
+    return avg_acc1_5, avg_acc1_10'''
+
 def compute_iou_and_disp(gt_crop, pre_crop, im_w, im_h):
     ''''
     :param gt_crop: [[x1,y1,x2,y2]]
@@ -79,7 +107,7 @@ def compute_iou_and_disp(gt_crop, pre_crop, im_w, im_h):
     return iou[index].item(), disp[index].item()
 
 
-def evaluate_on_GAICD(model, only_human=True):
+def evaluate_on_GAICD(model, only_human=True, only_square = False):
     model.eval()
     print('='*5, 'Evaluating on GAICD dataset', '='*5)
     srcc_list = []
@@ -88,7 +116,7 @@ def evaluate_on_GAICD(model, only_human=True):
     count = 0
     test_dataset = GAICDataset(only_human_images=only_human,
                                split='test',
-                               keep_aspect_ratio=cfg.keep_aspect_ratio)
+                               keep_aspect_ratio=cfg.keep_aspect_ratio, only_square_anchors = only_square)
     test_loader  = torch.utils.data.DataLoader(
                         test_dataset, batch_size=1,
                         shuffle=False, num_workers=cfg.num_workers,
@@ -274,7 +302,7 @@ if __name__ == '__main__':
 
     model = model.eval().to(device)
 
-    evaluate_on_GAICD(model, only_human=False)
+    evaluate_on_GAICD(model, only_human=False, only_square = True)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
