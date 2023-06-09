@@ -153,9 +153,11 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
             print(type(im))
             print(im.shape)
             PIL_image = Image.fromarray(im.astype('uint8'), 'RGB')
+            cropped_PIL = PIL_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
 
             # Save the image
-            PIL_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/square_GAIC.png')
+            PIL_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original_GAIC.png')
+            cropped_PIL.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/square_GAIC.png')
             break
             print(pred_x1, pred_y1, pred_x2, pred_y2)
             #pred_crop = torch.tensor([[pred_x1, pred_y1, pred_x2, pred_y2]])
