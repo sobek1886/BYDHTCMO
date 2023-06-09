@@ -133,6 +133,7 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
             scores    = batch_data[6].reshape(-1).numpy().tolist()
             width     = batch_data[7]
             height    = batch_data[8]
+            resized_image = batch_data[9]
             count    += im.shape[0]
 
             part_feat, heat_map, pre_scores = model(im, crop, humanbox, crop_mask, part_mask)
@@ -148,15 +149,23 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
             pred_x2 = int(crop[idx][2])
             pred_y2 = int(crop[idx][3])
             
-            im = np.squeeze(im)
+            '''im = np.squeeze(im)
             im = np.transpose(im, (1, 2, 0))
             print(type(im))
             print(im.shape)
-            PIL_image = Image.fromarray(im.astype('uint8'), 'RGB')
-            cropped_PIL = PIL_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
+            PIL_image = Image.fromarray(im.astype('uint8'), 'RGB')'''
+            resized_image = resized_image.cpu().detach().numpy()
+            resized_image = np.squeeze(resized_image)
+            #resized_image = np.transpose(resized_image, (1, 2, 0))
+            resized_image = Image.fromarray(resized_image.astype('uint8'), 'RGB')
+
+            print(resized_image.size)
+            #resized_image = Image.fromarray(resized_image)
+            cropped_PIL = resized_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
 
             # Save the image
-            PIL_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original_GAIC.png')
+
+            resized_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original_GAIC.png')
             cropped_PIL.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/square_GAIC.png')
             break
             print(pred_x1, pred_y1, pred_x2, pred_y2)

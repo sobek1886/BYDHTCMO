@@ -440,6 +440,7 @@ class GAICDataset(Dataset):
 
     def __getitem__(self, index):
         image_name = self.image_list[index]
+        print(image_name)
         image_file = os.path.join(self.image_dir, image_name)
         image = Image.open(image_file).convert('RGB')
         im_width, im_height = image.size
@@ -470,28 +471,32 @@ class GAICDataset(Dataset):
         # score = [float(s - MOS_MEAN) / MOS_STD for s in score]
         score = torch.tensor(score).reshape(-1)
         if self.augmentation:
-            if random.uniform(0,1) > 0.5:
-                resized_image = ImageOps.mirror(resized_image)
-                heat_map  = ImageOps.mirror(heat_map)
-                temp_x1 = crop[:, 0].copy()
-                crop[:, 0] = rs_width - crop[:, 2]
-                crop[:, 2] = rs_width - temp_x1
+          if random.uniform(0,1) > 0.5:
+              resized_image = ImageOps.mirror(resized_image)
+              heat_map  = ImageOps.mirror(heat_map)
+              temp_x1 = crop[:, 0].copy()
+              crop[:, 0] = rs_width - crop[:, 2]
+              crop[:, 2] = rs_width - temp_x1
 
-                if image_name in self.human_bboxes:
-                    # print('human mirror_before', hbox[0])
-                    temp_x1 = hbox[:,0].copy()
-                    hbox[:,0] = rs_width - hbox[:,2]
-                    hbox[:,2] = rs_width - temp_x1
-                    # print('human mirror after',  hbox)
-            resized_image = self.PhotometricDistort(resized_image)
-        im = self.image_transformer(resized_image)
+              if image_name in self.human_bboxes:
+                  # print('human mirror_before', hbox[0])
+                  temp_x1 = hbox[:,0].copy()
+                  hbox[:,0] = rs_width - hbox[:,2]
+                  hbox[:,2] = rs_width - temp_x1
+                  # print('human mirror after',  hbox)
+          resized_image_aug = self.PhotometricDistort(resized_image)
+          im = self.image_transformer(resized_image_aug)
+        else:
+          im = self.image_transformer(resized_image)
+
+        resized_image = np.array(resized_image)
         heat_map = self.heat_map_transformer(heat_map)
         # crop_mask = generate_crop_mask(crop, rs_width, rs_height,
         #                                self.crop_mask_downsample)
         crop_mask = generate_target_size_crop_mask(crop, rs_width, rs_height, 64, 64)
         partition_mask = generate_partition_mask(hbox, rs_width, rs_height,
                                                  self.human_mask_downsample)
-        return im, crop, hbox, heat_map, crop_mask, partition_mask, score, im_width, im_height
+        return im, crop, hbox, heat_map, crop_mask, partition_mask, score, im_width, im_height, resized_image
 
 def compute_overlap(crops, human_bbox):
     human_bbox = human_bbox.reshape(-1)
