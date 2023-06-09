@@ -97,11 +97,6 @@ def crop_image(image):
     ############## get prediction from the model
     part_feat, heat_map, scores = model(im_deviced, crop, hbox_deviced, crop_mask, part_mask_deviced)
 
-    # visualize heat map
-    visualize_heat_map(im, heat_map)
-
-
-
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)

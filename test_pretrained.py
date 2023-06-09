@@ -137,6 +137,29 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
 
             part_feat, heat_map, pre_scores = model(im, crop, humanbox, crop_mask, part_mask)
             pre_scores = pre_scores.cpu().detach().numpy().reshape(-1)
+            
+            idx = np.argmax(pre_scores)
+            crop = crop.cpu().detach().numpy()
+            im = im.cpu().detach().numpy()
+
+            crop = np.squeeze(crop)
+            pred_x1 = int(crop[idx][0])
+            pred_y1 = int(crop[idx][1])
+            pred_x2 = int(crop[idx][2])
+            pred_y2 = int(crop[idx][3])
+            
+            im = np.squeeze(im)
+            im = np.transpose(im, (1, 2, 0))
+            print(type(im))
+            print(im.shape)
+            PIL_image = Image.fromarray(im.astype('uint8'), 'RGB')
+
+            # Save the image
+            PIL_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/square_GAIC.png')
+            break
+            print(pred_x1, pred_y1, pred_x2, pred_y2)
+            #pred_crop = torch.tensor([[pred_x1, pred_y1, pred_x2, pred_y2]])
+
             srcc_list.append(spearmanr(scores, pre_scores)[0])
             gt_scores.append(scores)
             pr_scores.append(pre_scores)
