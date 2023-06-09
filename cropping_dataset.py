@@ -440,7 +440,6 @@ class GAICDataset(Dataset):
 
     def __getitem__(self, index):
         image_name = self.image_list[index]
-        print(image_name)
         image_file = os.path.join(self.image_dir, image_name)
         image = Image.open(image_file).convert('RGB')
         im_width, im_height = image.size

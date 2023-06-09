@@ -59,6 +59,10 @@ class Config:
     content_loss_weight   = 1.
     visualize_heat_map    = True
 
+    make_square = True
+    make_square_type = 'naive' #['naive', 'outpaint']
+    subjects_preserving = False
+
     use_rod_feature = True
     reduced_dim = 32
 
@@ -105,6 +109,8 @@ class Config:
             prefix += f'_onlycontent'
     exp_root = os.path.join(os.getcwd(), './experiments')
 
+    vis_root = os.path.join(os.getcwd(), 'visual_results')
+
     # prefix = f'{content_loss_weight}_content_loss'
     # exp_root = os.path.join(os.getcwd(), './experiments/hyper_parameter')
 
@@ -122,11 +128,41 @@ class Config:
     checkpoint_dir = os.path.join(exp_path, 'checkpoints')
     log_dir = os.path.join(exp_path, 'logs')
 
+    vis_prefix = 'GAICD'
+    if only_human:
+        vis_prefix += '-Human'
+    if make_square:
+      vis_prefix += '-MS'
+      vis_prefix += f'-{make_square_type}'
+    if subjects_preserving:
+      vis_prefix += '-SP'
+
+
+    vis_name = vis_prefix
+    vis_path = os.path.join(vis_root, vis_prefix)
+    while os.path.exists(vis_path):
+        index = os.path.basename(vis_path).split(vis_prefix)[-1].split('repeat')[-1]
+        try:
+            index = int(index) + 1
+        except:
+            index = 1
+        vis_name = vis_prefix + ('_repeat{}'.format(index))
+        vis_path = os.path.join(vis_root, vis_name)
+    # print('Experiment name {} \n'.format(os.path.basename(exp_path)))
+    original_dir = os.path.join(vis_path, 'originals')
+    cropped_dir = os.path.join(vis_path, 'crops')
+
     def create_path(self):
         print('Create experiment directory: ', self.exp_path)
         os.makedirs(self.exp_path)
         os.makedirs(self.checkpoint_dir)
         os.makedirs(self.log_dir)
+
+    def create_path_visual(self):
+        print('Create visual results directory: ', self.vis_path)
+        os.makedirs(self.vis_path)
+        os.makedirs(self.original_dir)
+        os.makedirs(self.cropped_dir)
 
 cfg = Config()
 

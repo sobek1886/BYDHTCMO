@@ -107,7 +107,7 @@ def compute_iou_and_disp(gt_crop, pre_crop, im_w, im_h):
     return iou[index].item(), disp[index].item()
 
 
-def evaluate_on_GAICD(model, only_human=True, only_square = False):
+def evaluate_on_GAICD(model, only_human=True, make_square = False):
     model.eval()
     print('='*5, 'Evaluating on GAICD dataset', '='*5)
     srcc_list = []
@@ -116,7 +116,7 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
     count = 0
     test_dataset = GAICDataset(only_human_images=only_human,
                                split='test',
-                               keep_aspect_ratio=cfg.keep_aspect_ratio, only_square_anchors = only_square)
+                               keep_aspect_ratio=cfg.keep_aspect_ratio, only_square_anchors = make_square)
     test_loader  = torch.utils.data.DataLoader(
                         test_dataset, batch_size=1,
                         shuffle=False, num_workers=cfg.num_workers,
@@ -141,7 +141,6 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
             
             idx = np.argmax(pre_scores)
             crop = crop.cpu().detach().numpy()
-            im = im.cpu().detach().numpy()
 
             crop = np.squeeze(crop)
             pred_x1 = int(crop[idx][0])
@@ -158,18 +157,25 @@ def evaluate_on_GAICD(model, only_human=True, only_square = False):
             resized_image = np.squeeze(resized_image)
             #resized_image = np.transpose(resized_image, (1, 2, 0))
             resized_image = Image.fromarray(resized_image.astype('uint8'), 'RGB')
-
-            print(resized_image.size)
-            #resized_image = Image.fromarray(resized_image)
             cropped_PIL = resized_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
 
-            # Save the image
+            # Check for existing files
+            original_dir = cfg.original_dir
+            cropped_dir = cfg.cropped_dir
 
-            resized_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/original_GAIC.png')
-            cropped_PIL.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/square_GAIC.png')
-            break
-            print(pred_x1, pred_y1, pred_x2, pred_y2)
-            #pred_crop = torch.tensor([[pred_x1, pred_y1, pred_x2, pred_y2]])
+            base_filename = '1.png'
+            counter = 1
+            filename = base_filename
+
+            while os.path.exists(os.path.join(original_dir, filename)):
+                counter += 1
+                filename = f'{counter}.png'
+            
+            original_path = os.path.join(original_dir, filename)
+            crop_path = os.path.join(cfg.cropped_dir, filename)
+             # Save the image
+            resized_image.save(original_path)
+            cropped_PIL.save(crop_path)
 
             srcc_list.append(spearmanr(scores, pre_scores)[0])
             gt_scores.append(scores)
@@ -328,6 +334,9 @@ if __name__ == '__main__':
     cfg.use_content_preserve = True
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
+    cfg.make_square = True
+    cfg.make_square_type = 'naive' #['naive', 'outpaint']
+    cfg.subjects_preserving = False
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
     #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_PA_CP_repeat8/checkpoints/best-human_srcc.pth'))
@@ -336,7 +345,8 @@ if __name__ == '__main__':
 
     model = model.eval().to(device)
 
-    evaluate_on_GAICD(model, only_human=False, only_square = True)
+    cfg.create_path_visual()
+    evaluate_on_GAICD(model, only_human=False, make_square = True)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
