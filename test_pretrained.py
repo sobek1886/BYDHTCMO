@@ -107,7 +107,7 @@ def compute_iou_and_disp(gt_crop, pre_crop, im_w, im_h):
     return iou[index].item(), disp[index].item()
 
 
-def evaluate_on_GAICD(model, only_human=True, make_square = False):
+def evaluate_on_GAICD(model, only_human=True, make_square = False, user_study = False):
     model.eval()
     print('='*5, 'Evaluating on GAICD dataset', '='*5)
     srcc_list = []
@@ -116,7 +116,7 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False):
     count = 0
     test_dataset = GAICDataset(only_human_images=only_human,
                                split='test',
-                               keep_aspect_ratio=cfg.keep_aspect_ratio, only_square_anchors = make_square)
+                               keep_aspect_ratio=cfg.keep_aspect_ratio, only_square_anchors = make_square, user_study = user_study)
     test_loader  = torch.utils.data.DataLoader(
                         test_dataset, batch_size=1,
                         shuffle=False, num_workers=cfg.num_workers,
@@ -130,7 +130,8 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False):
             heat_map  = batch_data[3]
             crop_mask = batch_data[4].to(device)
             part_mask = batch_data[5].to(device)
-            scores    = batch_data[6].reshape(-1).numpy().tolist()
+            if not user_study:
+              scores    = batch_data[6].reshape(-1).numpy().tolist()
             width     = batch_data[7]
             height    = batch_data[8]
             resized_image = batch_data[9]
@@ -177,16 +178,18 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False):
             resized_image.save(original_path)
             cropped_PIL.save(crop_path)
 
-            srcc_list.append(spearmanr(scores, pre_scores)[0])
-            gt_scores.append(scores)
-            pr_scores.append(pre_scores)
-
-    srcc = sum(srcc_list) / len(srcc_list)
-    acc5, acc10 = compute_acc(gt_scores, pr_scores)
-    print('Test on GAICD {} images, SRCC={:.3f}, acc5={:.3f}, acc10={:.3f}'.format(
-        count, srcc, acc5, acc10
-    ))
-    return srcc, acc5, acc10
+            if not user_study:
+              srcc_list.append(spearmanr(scores, pre_scores)[0])
+              gt_scores.append(scores)
+              pr_scores.append(pre_scores)
+    if not user_study:
+      srcc = sum(srcc_list) / len(srcc_list)
+      acc5, acc10 = compute_acc(gt_scores, pr_scores)
+      print('Test on GAICD {} images, SRCC={:.3f}, acc5={:.3f}, acc10={:.3f}'.format(
+          count, srcc, acc5, acc10
+      ))
+      return srcc, acc5, acc10
+    return None
 
 def get_pdefined_anchor():
     # get predefined boxes(x1, y1, x2, y2)
@@ -346,7 +349,7 @@ if __name__ == '__main__':
     model = model.eval().to(device)
 
     cfg.create_path_visual()
-    evaluate_on_GAICD(model, only_human=False, make_square = True)
+    evaluate_on_GAICD(model, only_human=False, make_square = True, user_study = True)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)

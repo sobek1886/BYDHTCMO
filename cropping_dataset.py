@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import math
 import random
 from config_GAICD import cfg
+from generate_new_anchors import generate_anchors_aspect_ratio_specific
 
 MOS_MEAN = 2.95
 MOS_STD  = 0.8
@@ -370,11 +371,13 @@ class FLMSDataset(Dataset):
 
 class GAICDataset(Dataset):
     def __init__(self, only_human_images=False, split='all',
-                 keep_aspect_ratio=True, only_square_anchors = False):
+                 keep_aspect_ratio=True, only_square_anchors = False, user_study = False):
         self.only_human = only_human_images
         self.only_square_anchors = only_square_anchors
         self.split = split
         self.keep_aspect = keep_aspect_ratio
+        self.user_study = user_study
+        
         self.image_size = cfg.image_size
         self.image_dir = cfg.GAIC_image
         self.heat_map_dir = cfg.GAIC_heat_map
@@ -383,6 +386,8 @@ class GAICDataset(Dataset):
         if self.only_square_anchors:
           self.annotations  = json.load(open(cfg.GAIC_test_square, 'r'))
           self.data_split = json.load(open(cfg.GAIC_test_square_list, 'r'))
+        elif self.user_study:
+          self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
         else:
           self.annotations  = json.load(open(cfg.GAIC_anno, 'r'))
           self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
@@ -464,11 +469,16 @@ class GAICDataset(Dataset):
         # hm_w, hm_h = int(rs_width * self.heat_map_scale), int(rs_height * self.heat_map_scale)
         hm_w = hm_h = 64
         heat_map = heat_map.resize((hm_w, hm_h))
-        crop = self.annotations[image_name]['bbox']
-        crop = rescale_bbox(crop, ratio_w, ratio_h)
-        score = self.annotations[image_name]['score']
-        # score = [float(s - MOS_MEAN) / MOS_STD for s in score]
-        score = torch.tensor(score).reshape(-1)
+        if self.user_study:
+          crop = generate_anchors_aspect_ratio_specific(im_width, im_height, (1, 1))
+          crop = rescale_bbox(crop, ratio_w, ratio_h)
+          score = -1
+        else:
+          crop = self.annotations[image_name]['bbox']
+          crop = rescale_bbox(crop, ratio_w, ratio_h)
+          score = self.annotations[image_name]['score']
+          # score = [float(s - MOS_MEAN) / MOS_STD for s in score]
+          score = torch.tensor(score).reshape(-1)
         if self.augmentation:
           if random.uniform(0,1) > 0.5:
               resized_image = ImageOps.mirror(resized_image)
