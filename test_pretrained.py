@@ -18,6 +18,11 @@ from PIL import Image, ImageDraw
 from cropping_dataset import FCDBDataset, FLMSDataset, GAICDataset, generate_target_size_crop_mask
 from config_GAICD import cfg
 from cropping_model import HumanCentricCroppingModel
+from BBox_adjusting import RegionDetector
+from BBox_adjusting import BoundingBox
+from super_gradients.common.object_names import Models
+from super_gradients.training import models
+#from outpaint import outpaint_image
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
 torch.cuda.set_device(cfg.gpu_id)
@@ -107,7 +112,7 @@ def compute_iou_and_disp(gt_crop, pre_crop, im_w, im_h):
     return iou[index].item(), disp[index].item()
 
 
-def evaluate_on_GAICD(model, only_human=True, make_square = False, user_study = False):
+def evaluate_on_GAICD(model, only_human=True, make_square = False, user_study = False, subjects_preserving = False):
     model.eval()
     print('='*5, 'Evaluating on GAICD dataset', '='*5)
     srcc_list = []
@@ -135,6 +140,9 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False, user_study = 
             width     = batch_data[7]
             height    = batch_data[8]
             resized_image = batch_data[9]
+            resized_image = resized_image.cpu().detach().numpy()
+            resized_image = np.squeeze(resized_image)
+            resized_image = Image.fromarray(resized_image.astype('uint8'), 'RGB')
             count    += im.shape[0]
 
             part_feat, heat_map, pre_scores = model(im, crop, humanbox, crop_mask, part_mask)
@@ -148,18 +156,20 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False, user_study = 
             pred_y1 = int(crop[idx][1])
             pred_x2 = int(crop[idx][2])
             pred_y2 = int(crop[idx][3])
-            
-            '''im = np.squeeze(im)
-            im = np.transpose(im, (1, 2, 0))
-            print(type(im))
-            print(im.shape)
-            PIL_image = Image.fromarray(im.astype('uint8'), 'RGB')'''
-            resized_image = resized_image.cpu().detach().numpy()
-            resized_image = np.squeeze(resized_image)
-            #resized_image = np.transpose(resized_image, (1, 2, 0))
-            resized_image = Image.fromarray(resized_image.astype('uint8'), 'RGB')
-            cropped_PIL = resized_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
 
+            if subjects_preserving == True:
+              # get most important region for bbox adjusting
+              most_important_region = [pred_x1, pred_y1, pred_x2, pred_y2]
+              region_detector = RegionDetector(resized_image, make_square)
+              YOLO_predictions = region_detector.YOLO_prediction()
+              detected_objects = region_detector.detect_objects(YOLO_predictions)
+              most_important_region = BoundingBox(most_important_region)
+              objects_in_region = region_detector.determine_objects_in_region(detected_objects, most_important_region)
+              expanded_region = region_detector.adjust_most_important_region(objects_in_region, most_important_region)
+              pred_x1, pred_y1, pred_x2, pred_y2 = expanded_region
+            
+            cropped_image = resized_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
+  
             # Check for existing files
             original_dir = cfg.original_dir
             cropped_dir = cfg.cropped_dir
@@ -176,7 +186,7 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False, user_study = 
             crop_path = os.path.join(cfg.cropped_dir, filename)
              # Save the image
             resized_image.save(original_path)
-            cropped_PIL.save(crop_path)
+            cropped_image.save(crop_path)
 
             if not user_study:
               srcc_list.append(spearmanr(scores, pre_scores)[0])
@@ -339,7 +349,7 @@ if __name__ == '__main__':
     cfg.only_content_preserve = False
     cfg.make_square = True
     cfg.make_square_type = 'naive' #['naive', 'outpaint']
-    cfg.subjects_preserving = False
+    cfg.subjects_preserving = True
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
     #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_PA_CP_repeat8/checkpoints/best-human_srcc.pth'))
@@ -349,7 +359,7 @@ if __name__ == '__main__':
     model = model.eval().to(device)
 
     cfg.create_path_visual()
-    evaluate_on_GAICD(model, only_human=False, make_square = True, user_study = True)
+    evaluate_on_GAICD(model, only_human=False, make_square = True, user_study = True, subjects_preserving = True)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)

@@ -20,7 +20,7 @@ from BBox_adjusting import RegionDetector
 from BBox_adjusting import BoundingBox
 from super_gradients.common.object_names import Models
 from super_gradients.training import models
-#from outpaint import outpaint_image
+from outpaint import outpaint_image
 import sys
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
@@ -30,8 +30,7 @@ MOS_STD  = 0.8
 IMAGE_NET_MEAN = [0.485, 0.456, 0.406]
 IMAGE_NET_STD = [0.229, 0.224, 0.225]
 
-def crop_image(image):
-    keep_aspect = False
+def crop_image(image, bbox_adjusting = False, keep_aspect = False, make_square = False):
     crop_mask_downsample = 4
     human_mask_downsample = 16
     image_transformer = transforms.Compose([
@@ -79,7 +78,7 @@ def crop_image(image):
     part_mask = generate_partition_mask(hbox, rs_width, rs_height,
                                                  human_mask_downsample)
 
-    pdefined_anchors = get_pdefined_anchor(make_square = True) # n,4, (x1,y1,x2,y2)
+    pdefined_anchors = get_pdefined_anchor() # n,4, (x1,y1,x2,y2)
 
     crop = np.zeros((len(pdefined_anchors), 4), dtype=np.float32)
     crop[:, 0::2] = pdefined_anchors[:, 0::2] * im.shape[-1]
@@ -96,9 +95,6 @@ def crop_image(image):
     ############## get prediction from the model
     part_feat, heat_map, scores = model(im_deviced, crop, hbox_deviced, crop_mask, part_mask_deviced)
 
-    # visualize heat map
-    visualize_heat_map(im, heat_map)
-
     # get best crop
     scores = scores.reshape(-1).cpu().detach().numpy()
     idx = np.argmax(scores)
@@ -107,16 +103,15 @@ def crop_image(image):
     pred_x2 = int(pdefined_anchors[idx][2] * im_width)
     pred_y2 = int(pdefined_anchors[idx][3] * im_height)
 
-    bbox_adjusting = False
     if bbox_adjusting == True:
       # get most important region for bbox adjusting
       most_important_region = [pred_x1, pred_y1, pred_x2, pred_y2]
-      region_detector = RegionDetector(image)
+      region_detector = RegionDetector(image, make_square)
       YOLO_predictions = region_detector.YOLO_prediction()
       detected_objects = region_detector.detect_objects(YOLO_predictions)
       most_important_region = BoundingBox(most_important_region)
       objects_in_region = region_detector.determine_objects_in_region(detected_objects, most_important_region)
-      expanded_region = region_detector.expand_most_important_region(objects_in_region, most_important_region)
+      expanded_region = region_detector.adjust_most_important_region(objects_in_region, most_important_region)
       pred_x1, pred_y1, pred_x2, pred_y2 = expanded_region
       cropped_image = image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
       cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/adjusted_cropped_image.png')
@@ -126,10 +121,9 @@ def crop_image(image):
       cropped_image = image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
       cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/isthissquaaare_cropped_image.png')
     
-    make_square = False
     if make_square:
       squared_image = outpaint_image(cropped_image)
-      squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/squared_image.png')
+      squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/outpainted_squared_image.png')
       return squared_image
     else:
       return cropped_image
@@ -159,14 +153,9 @@ if __name__ == '__main__':
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
 
-    
-    #print(sys.argv[1:])
-    #for image_path in sys.argv[1:]:
     image = '/content/Fork-Human-Centric-Image-Cropping/GAIC_280712.jpg'
     
     image = Image.open(image)
     image = np.array(image)
-    print(type(image))
-    #image = f"'{image_path}'"
-    #print(image)
-    crop_image(image)
+
+    crop_image(image, bbox_adjusting = True, keep_aspect = False, make_square = True)
