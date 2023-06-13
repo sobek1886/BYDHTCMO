@@ -172,9 +172,12 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False, make_square_t
             cropped_image = resized_image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
 
             if make_square:
-              if make_square_type == 'outpaint':
-                Outpainter = OutpaintingFeature(cropped_image, num_samples = 3)
-                cropped_image = Outpainter.outpaint_image()
+              #check if the image is not square already
+              w,h = cropped_image.size
+              if w/h != 1:
+                if make_square_type == 'outpaint':
+                  Outpainter = OutpaintingFeature(cropped_image, num_samples = 3)
+                  cropped_image = Outpainter.outpaint_image()
   
             # Check for existing files
             original_dir = cfg.original_dir

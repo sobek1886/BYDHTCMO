@@ -65,6 +65,8 @@ class RegionDetector:
     def adjust_most_important_region(self, objects_in_region, most_important_region):
       if len(objects_in_region) == 0:
         min_x, min_y, max_x, max_y = most_important_region.coordinates
+      elif len(objects_in_region) == 1:
+        min_x, min_y, max_x, max_y = [objects_in_region[0][0].coordinates, objects_in_region[0][1].coordinates, objects_in_region[0][2].coordinates, objects_in_region[0][3].coordinates]
       else:
         min_x = min(*([obj.coordinates[0] for obj in objects_in_region]))
         min_y = min(*([obj.coordinates[1] for obj in objects_in_region]))

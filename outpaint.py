@@ -151,7 +151,7 @@ class OutpaintingFeature:
       SSIM_values_B = []
 
       for area in new_areas:
-        print(f'\n og_A: {og_A.size},\n area0: {area[0].size}')
+        print(f'\n og_A: {og_A.size}\n area0: {area[0].size}')
         value_A = compare_ssim(og_A, area[0], GPU=False)
         SSIM_values_A.append(value_A)
 
