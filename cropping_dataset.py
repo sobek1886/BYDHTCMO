@@ -448,14 +448,20 @@ class GAICDataset(Dataset):
         image_file = os.path.join(self.image_dir, image_name)
         image = Image.open(image_file).convert('RGB')
         im_width, im_height = image.size
-        if self.keep_aspect:
-            scale = float(cfg.image_size[0]) / min(im_height, im_width)
-            h = round(im_height * scale / 32.0) * 32
-            w = round(im_width * scale / 32.0) * 32
+        resize_input = False
+        if resize_input:
+          if self.keep_aspect:
+              resized_image = image
+              resized_image.thumbnail(self.image_size)
+              '''scale = float(cfg.image_size[0]) / min(im_height, im_width)
+              h = round(im_height * scale / 32.0) * 32
+              w = round(im_width * scale / 32.0) * 32'''
+          else:
+              h = cfg.image_size[1]
+              w = cfg.image_size[0]
+              resized_image = image.resize((w, h), Image.ANTIALIAS)
         else:
-            h = cfg.image_size[1]
-            w = cfg.image_size[0]
-        resized_image = image.resize((w, h), Image.ANTIALIAS)
+          resized_image = image
         rs_width, rs_height = resized_image.size
         ratio_h = float(rs_height) / im_height
         ratio_w = float(rs_width) / im_width

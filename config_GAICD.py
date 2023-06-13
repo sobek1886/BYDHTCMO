@@ -35,7 +35,7 @@ class Config:
     GAIC_heat_map= os.path.join(heat_map_dir, 'GAICD', 'mask')
 
     heat_map_size = 1./4
-    image_size = (256,256)
+    image_size = (512,512)
     backbone = 'vgg16'
     backbone_weight_path = ('/workspace/pretrained_models/{}.pth'.format(backbone))
     # training
@@ -60,7 +60,7 @@ class Config:
     visualize_heat_map    = True
 
     make_square = True
-    make_square_type = 'naive' #['naive', 'outpaint']
+    make_square_type = 'outpaint' #['naive', 'outpaint']
     subjects_preserving = False
 
     use_rod_feature = True

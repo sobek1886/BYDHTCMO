@@ -20,7 +20,7 @@ from BBox_adjusting import RegionDetector
 from BBox_adjusting import BoundingBox
 from super_gradients.common.object_names import Models
 from super_gradients.training import models
-from outpaint import outpaint_image
+from outpaint import OutpaintingFeature
 import sys
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
@@ -122,9 +122,10 @@ def crop_image(image, bbox_adjusting = False, keep_aspect = False, make_square =
       cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/isthissquaaare_cropped_image.png')
     
     if make_square:
-      squared_image = outpaint_image(cropped_image)
-      squared_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/outpainted_squared_image.png')
-      return squared_image
+      Outpainter = OutpaintingFeature(cropped_image, num_samples = 3)
+      outpainted_to_square = Outpainter.outpaint_image()
+      outpainted_to_square.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/outpainted_squared_image.png')
+      return outpainted_to_square
     else:
       return cropped_image
 
