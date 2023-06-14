@@ -158,7 +158,7 @@ if __name__ == '__main__':
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
 
-    image = '/content/7.png'
+    image = '/content/6.png'
     
     image = Image.open(image)
     image = np.array(image)

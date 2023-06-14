@@ -66,12 +66,19 @@ class RegionDetector:
       if len(objects_in_region) == 0:
         min_x, min_y, max_x, max_y = most_important_region.coordinates
       elif len(objects_in_region) == 1:
-        min_x, min_y, max_x, max_y = objects_in_region[0].coordinates
+        min_x = min(most_important_region.coordinates[0], objects_in_region[0].coordinates[0])
+        min_y = min(most_important_region.coordinates[1], objects_in_region[0].coordinates[1])
+        max_x = max(most_important_region.coordinates[2], objects_in_region[0].coordinates[2])
+        max_y = max(most_important_region.coordinates[3], objects_in_region[0].coordinates[3])
       else:
-        min_x = min(*([obj.coordinates[0] for obj in objects_in_region]))
+        '''min_x = min(*([obj.coordinates[0] for obj in objects_in_region]))
         min_y = min(*([obj.coordinates[1] for obj in objects_in_region]))
         max_x = max(*([obj.coordinates[2] for obj in objects_in_region]))
-        max_y = max(*([obj.coordinates[3] for obj in objects_in_region]))
+        max_y = max(*([obj.coordinates[3] for obj in objects_in_region]))'''
+        min_x = min(most_important_region.coordinates[0], *([obj.coordinates[0] for obj in objects_in_region]))
+        min_y = min(most_important_region.coordinates[1], *([obj.coordinates[1] for obj in objects_in_region]))
+        max_x = max(most_important_region.coordinates[2], *([obj.coordinates[2] for obj in objects_in_region]))
+        max_y = max(most_important_region.coordinates[3], *([obj.coordinates[3] for obj in objects_in_region]))
       
       if self.make_square:
         width = max_x - min_x
@@ -133,8 +140,11 @@ class RegionDetector:
         
 if __name__ == '__main__':
   # Usage example:
-  most_important_region = [29, 43, 656, 811]
-  image = "/content/GAIC_280712.jpg"
+  #6
+  most_important_region = [25, 19, 640, 480]
+  #7
+  #most_important_region = [81, 61, 1003, 753]
+  image = "/content/6.png"
   make_square = True
 
   region_detector = RegionDetector(image, make_square)
