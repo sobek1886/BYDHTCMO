@@ -36,6 +36,7 @@ class Config:
 
     heat_map_size = 1./4
     image_size = (512,512)
+    outpaint_size = (512,512)
     backbone = 'vgg16'
     backbone_weight_path = ('/workspace/pretrained_models/{}.pth'.format(backbone))
     # training

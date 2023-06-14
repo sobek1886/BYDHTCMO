@@ -13,59 +13,71 @@ from config_GAICD import cfg
 class OutpaintingFeature:
     def __init__(self, image, num_samples = 1):
 
-        self.desired_size = cfg.image_size
-        self.input_image = image
-        if type(self.input_image) == str:  # input_image is a URL
-            self.input_image = Image.open(self.input_image)
-        elif isinstance(self.input_image, Image.Image): # input_image is already a PIL Image object
-            pass
-        else:  # input_image is a numpy ndarray # for gradio
-            self.input_image = Image.fromarray(self.input_image)
-        # resize image
-        #self.input_image.thumbnail((512,512))
-        print(f'input to outpaint.py {self.input_image.size}')
-        self.input_image.thumbnail(self.desired_size)
-        print(f'after thumbnail in outpaint init {self.input_image.size}')
+      self.desired_size = cfg.image_size
+      self.outpaint_size = cfg.outpaint_size
 
-        # get width and size
-        self.image_width, self.image_height = self.input_image.size
-        # Calculate the size of the new square image
-        self.new_size = max(self.image_width, self.image_height)
+      self.input_image = image
+      if type(self.input_image) == str:  # input_image is a URL
+          self.input_image = Image.open(self.input_image)
+      elif isinstance(self.input_image, Image.Image): # input_image is already a PIL Image object
+          pass
+      else:  # input_image is a numpy ndarray # for gradio
+          self.input_image = Image.fromarray(self.input_image)
+      # resize image
+      #self.input_image.thumbnail((512,512))
+      print(f'input to outpaint.py {self.input_image.size}')
+      self.input_image.thumbnail(self.outpaint_size)
+      print(f'after thumbnail in outpaint init {self.input_image.size}')
 
-        # coordinates used to paste original image back
-        self.x = (self.new_size - self.image_width) // 2
-        self.y = (self.new_size - self.image_height) // 2
+      # get width and size
+      self.image_width, self.image_height = self.input_image.size
+      # Calculate the size of the new square image
+      self.new_size = max(self.image_width, self.image_height)
 
-        # used to get areas for SSIM
-        if self.image_width > self.image_height:
-          self.ratio = self.desired_size[0]/self.image_width
-          self.wider = True
-        else:
-          self.ratio = self.desired_size[0]/self.image_height
-          self.wider = False
+      # coordinates used to paste original image back
+      self.x = (self.new_size - self.image_width) // 2
+      self.y = (self.new_size - self.image_height) // 2
 
-        self.device = "cuda"
-        self.model_path = "runwayml/stable-diffusion-inpainting"
-        self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
-            self.model_path,
-            torch_dtype=torch.float16,
-        ).to(self.device)
-        self.generator = torch.Generator(device="cuda").manual_seed(0) # change the seed to get different results
-        self.generation_size = self.desired_size[0]
-        ## empty prompt for random generation
-        self.prompt = ""
-        self.seed = 51
-        self.guidance_scale= 7.5
-        self.num_samples = num_samples
-        # negative prompt to steer away the random generation from generating frames/fonts/writings
-        self.negative = '''frame, album cover, document photo, portrait, picture frame, incoherents, collage, type design, magazine cover, with text, cover, painting, wall mural, poster on wall, poster, screenshot, awful, wallpaper, grid, collage, text, writing, with writing, painting on the wall, poster, movie poster, logo, logos, watermark, plate, border, edge, wood, table, fabric, plate, pattern, lowres, error, cropped, worst quality, low quality, jpeg artifacts, out of frame, watermark, signature, deformed, ugly, mutilated, disfigured, text, extra limbs, face cut, head cut, extra fingers, extra arms, poorly drawn face, mutation, bad proportions, cropped head, malformed limbs, mutated hands, fused fingers, long neck'''
-        """frame, album cover, document photo, portrait, picture frame, incoherents, collage, type design, magazine cover, with text, cover, painting, wall mural, poster on wall, poster, screenshot, awful, wallpaper, grid, collage, text, writing, with writing, painting on the wall, poster, movie poster, logo, logos, watermark, plate, border, edge, wood, table, fabric, plate, pattern"""
+      # used to get areas for SSIM
+      self.use_SSIM = True
+      if self.image_width > self.image_height:
+        self.ratio = self.outpaint_size[0]/self.image_width
+        self.wider = True
+        if self.y < 7:
+          self.use_SSIM = False
+      else:
+        self.ratio = self.outpaint_size[0]/self.image_height
+        self.wider = False
+        if self.x < 7:
+          self.use_SSIM = False
+
+      self.device = "cuda"
+      self.model_path = "runwayml/stable-diffusion-inpainting"
+      self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
+          self.model_path,
+          torch_dtype=torch.float16,
+      ).to(self.device)
+      self.generator = torch.Generator(device="cuda").manual_seed(0) # change the seed to get different results
+      self.generation_size = self.outpaint_size[0]
+      ## empty prompt for random generation
+      self.prompt = ""
+      self.seed = 51
+      self.guidance_scale= 7.5
+      self.num_samples = num_samples
+      # negative prompt to steer away the random generation from generating frames/fonts/writings
+      self.negative = '''frame, album cover, document photo, portrait, picture frame, incoherents, collage, type design, magazine cover, with text, cover, painting, wall mural, poster on wall, poster, screenshot, awful, wallpaper, grid, collage, text, writing, with writing, painting on the wall, poster, movie poster, logo, logos, watermark, plate, border, edge, wood, table, fabric, plate, pattern, lowres, error, cropped, worst quality, low quality, jpeg artifacts, out of frame, watermark, signature, deformed, ugly, mutilated, disfigured, text, extra limbs, face cut, head cut, extra fingers, extra arms, poorly drawn face, mutation, bad proportions, cropped head, malformed limbs, mutated hands, fused fingers, long neck'''
+      """frame, album cover, document photo, portrait, picture frame, incoherents, collage, type design, magazine cover, with text, cover, painting, wall mural, poster on wall, poster, screenshot, awful, wallpaper, grid, collage, text, writing, with writing, painting on the wall, poster, movie poster, logo, logos, watermark, plate, border, edge, wood, table, fabric, plate, pattern"""
 
     def outpaint_image(self):
 
         #get image with added whitespace and mask
         squared_image, mask_image = self.get_masks()
         print(f'whitespaced: {squared_image.size} \n mask{mask_image.size}')
+
+        #when not using SSIM there is no way to compare the outpaints, therefore only 1 is generated
+        if not self.use_SSIM:
+          self.num_samples = 1
+
         # generate outpaints
         images = self.pipe(
             prompt = self.prompt,
@@ -77,18 +89,25 @@ class OutpaintingFeature:
             width = self.generation_size,
             height = self.generation_size,
             negative_prompt = self.negative).images
-        
-        # get areas for SSIM comparison
-        new_areas = [self.get_areas_new(outpainted_image) for outpainted_image in images]
-        og_A, og_B = self.get_areas_original()
-        best_A, idx_best_B = self.get_best_outpaints(og_A, og_B, new_areas)
 
-        #combine the original with the best outpaints
-        result = images[idx_best_B]
-        result.paste(best_A, (0, 0))
-        result.paste(self.input_image, (self.x, self.y))
-        #result.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/outpainted.png')
-        return result
+        if self.use_SSIM:
+          # get areas for SSIM comparison
+          new_areas = [self.get_areas_new(outpainted_image) for outpainted_image in images]
+          og_A, og_B = self.get_areas_original()
+          best_A, idx_best_B = self.get_best_outpaints(og_A, og_B, new_areas)
+
+          #combine the original with the best outpaints
+          result = images[idx_best_B]
+          result.paste(best_A, (0, 0))
+          result.paste(self.input_image, (self.x, self.y))
+          #result.thumbnail(self.desired_size)
+          return result
+
+        else:
+          result = images[0]
+          result.paste(self.input_image, (self.x, self.y))
+          #result.thumbnail(self.desired_size)
+          return result
 
     def get_masks(self):
         # Create a new blank square image

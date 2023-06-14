@@ -193,7 +193,12 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False, make_square_t
             
             original_path = os.path.join(original_dir, filename)
             crop_path = os.path.join(cfg.cropped_dir, filename)
-             # Save the image
+
+            # resize to desired size
+            desired_size = cfg.image_size
+            resized_image.thumbnail(desired_size)
+            cropped_image.thumbnail(desired_size)
+            # Save the image
             resized_image.save(original_path)
             cropped_image.save(crop_path)
 
