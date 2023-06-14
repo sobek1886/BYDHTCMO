@@ -102,6 +102,9 @@ def crop_image(image, bbox_adjusting = False, keep_aspect = False, make_square =
     pred_y1 = int(pdefined_anchors[idx][1] * im_height)
     pred_x2 = int(pdefined_anchors[idx][2] * im_width)
     pred_y2 = int(pdefined_anchors[idx][3] * im_height)
+    output_HCIC = image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
+    print(f'output HCIC: {[pred_x1, pred_y1, pred_x2, pred_y2]}')
+    output_HCIC.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/output_HCIC.png')
 
     if bbox_adjusting == True:
       # get most important region for bbox adjusting
@@ -121,7 +124,8 @@ def crop_image(image, bbox_adjusting = False, keep_aspect = False, make_square =
       cropped_image = image.crop((pred_x1, pred_y1, pred_x2, pred_y2))
       cropped_image.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/isthissquaaare_cropped_image.png')
     
-    if make_square:
+    #if make_square:
+    if True == False:
       Outpainter = OutpaintingFeature(cropped_image, num_samples = 3)
       outpainted_to_square = Outpainter.outpaint_image()
       outpainted_to_square.save('/content/Fork-Human-Centric-Image-Cropping/results_cropping/outpainted_squared_image.png')
@@ -154,7 +158,7 @@ if __name__ == '__main__':
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
 
-    image = '/content/Fork-Human-Centric-Image-Cropping/GAIC_280712.jpg'
+    image = '/content/7.png'
     
     image = Image.open(image)
     image = np.array(image)

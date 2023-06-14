@@ -66,7 +66,7 @@ class RegionDetector:
       if len(objects_in_region) == 0:
         min_x, min_y, max_x, max_y = most_important_region.coordinates
       elif len(objects_in_region) == 1:
-        min_x, min_y, max_x, max_y = [objects_in_region[0][0].coordinates, objects_in_region[0][1].coordinates, objects_in_region[0][2].coordinates, objects_in_region[0][3].coordinates]
+        min_x, min_y, max_x, max_y = objects_in_region[0].coordinates
       else:
         min_x = min(*([obj.coordinates[0] for obj in objects_in_region]))
         min_y = min(*([obj.coordinates[1] for obj in objects_in_region]))
@@ -76,7 +76,6 @@ class RegionDetector:
       if self.make_square:
         width = max_x - min_x
         height = max_y - min_y
-        print('\r')
 
         if width == height:
           adjusted_region = np.array([
@@ -98,7 +97,6 @@ class RegionDetector:
               top_available = min_y
               bot_available = (self.image_height - max_y)
               if (top_available < gap/2):
-                  print(f"width: {width} height: {height} gap: {gap} top_available: {top_available} bot_availableee: {bot_available}  ")
                   adjusted_region = np.array([min_x, 0, max_x, (self.image_height - (gap - top_available))], dtype=np.float32)
               elif (bot_available < gap/2):
                   adjusted_region = np.array([min_x, (gap - bot_available), max_x, (self.image_height)], dtype=np.float32)
@@ -117,7 +115,6 @@ class RegionDetector:
               top_available = min_y
               bot_available = (self.image_height - max_y)
               if (top_available < gap/2):
-                  print(f"width: {width} height: {height} gap: {gap} top_available: {top_available} bot_availableee: {bot_available}  ")
                   adjusted_region = np.array([min_x, 0, max_x, (self.image_height - (gap - top_available))], dtype=np.float32)
               elif (bot_available < gap/2):
                   adjusted_region = np.array([min_x, (gap - bot_available), max_x, (self.image_height)], dtype=np.float32)
