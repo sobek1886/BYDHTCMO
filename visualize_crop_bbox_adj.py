@@ -158,7 +158,7 @@ if __name__ == '__main__':
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
 
-    image = '/content/6.png'
+    image = '/content/Fork-Human-Centric-Image-Cropping/visual_results/GAICD-MS-naive-PA_repeat1/originals/7.png'
     
     image = Image.open(image)
     image = np.array(image)

@@ -17,9 +17,11 @@ class BoundingBox:
         return self.coordinates
 
 class RegionDetector:
-    def __init__(self, image, make_square):
+    def __init__(self, image, make_square = False, threshold = 0.7, YOLO_confidence = 0.5):
          self.input_image = image
          self.make_square = make_square
+         self.threshold = threshold
+         self.YOLO_confidence = YOLO_confidence
          if type(image) == str:  # input_image is a URL
             self.image = Image.open(image).convert('RGB')
          elif isinstance(image, Image.Image): # input_image is already a PIL Image object
@@ -32,7 +34,7 @@ class RegionDetector:
     def YOLO_prediction(self):
         device = torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")
         model = models.get("yolo_nas_l", pretrained_weights="coco").to(device)
-        image_prediction = list(model.predict(self.input_image, conf=0.2))[0]
+        image_prediction = list(model.predict(self.input_image, self.YOLO_confidence))[0]
         return image_prediction
 
     def detect_objects(self, YOLO_predictions):
@@ -54,7 +56,7 @@ class RegionDetector:
             intersection_area = self.calculate_intersection_area(obj, most_important_region)
             object_area = obj.calculate_area()
 
-            if intersection_area >= 0.3 * object_area:
+            if intersection_area >= self.threshold * object_area:
                 objects_in_region.append(obj)
         return objects_in_region
 
@@ -115,9 +117,11 @@ class RegionDetector:
           top_available = min_y
           bot_available = (self.image_height - max_y)
           if gap >= (top_available + bot_available):
-              adjusted_region = np.array([min_x, 0, max_x, self.image_height], dtype=np.float32)
+              adjusted_region = np.array([0, min_y, self.image_width, max_y], dtype=np.float32)
               '''if new_height != new_width
                   outpaint'''
+
+          #fix here
           else:
               top_available = min_y
               bot_available = (self.image_height - max_y)
@@ -141,10 +145,10 @@ class RegionDetector:
 if __name__ == '__main__':
   # Usage example:
   #6
-  most_important_region = [25, 19, 640, 480]
+  #most_important_region = [0, 0, 689, 720] #[0, 0, 689, 1024]
   #7
-  #most_important_region = [81, 61, 1003, 753]
-  image = "/content/6.png"
+  most_important_region = [350, 61, 1003, 753] #[81, 61, 1003, 753]
+  image = "/content/7.png"
   make_square = True
 
   region_detector = RegionDetector(image, make_square)

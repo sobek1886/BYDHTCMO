@@ -156,7 +156,7 @@ if __name__ == '__main__':
     
     #print(sys.argv[1:])
     #for image_path in sys.argv[1:]:
-    image = '/content/Fork-Human-Centric-Image-Cropping/GAIC_280712.jpg'
+    image = '/content/Fork-Human-Centric-Image-Cropping/visual_results/GAICD-MS-naive-PA_repeat1/originals/10.png'
     
     image = Image.open(image)
     image = np.array(image)

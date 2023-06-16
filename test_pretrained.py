@@ -23,7 +23,7 @@ from BBox_adjusting import BoundingBox
 from outpaint import OutpaintingFeature
 from super_gradients.common.object_names import Models
 from super_gradients.training import models
-#from outpaint import outpaint_image
+
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
 torch.cuda.set_device(cfg.gpu_id)
@@ -356,24 +356,24 @@ def weight_translate():
 
 if __name__ == '__main__':
     from config_GAICD import cfg
-    cfg.use_partition_aware = False
+    cfg.use_partition_aware = True
     cfg.partition_aware_type = 9
     cfg.use_content_preserve = True
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
     cfg.make_square = True
-    cfg.make_square_type = 'naive' #['naive', 'outpaint']
-    cfg.subjects_preserving = False
+    cfg.make_square_type = 'outpaint' #['naive', 'outpaint']
+    cfg.subjects_preserving = True
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
     #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_PA_CP_repeat8/checkpoints/best-human_srcc.pth'))
     #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/30epochs/checkpoints/best-srcc.pth'))
-    model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_CP/checkpoints/best-srcc.pth'))
-
+    #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_CP/checkpoints/best-srcc.pth'))
+    model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/80_GAICD_PA_CP/checkpoints/best-acc10.pth'))
     model = model.eval().to(device)
 
     cfg.create_path_visual()
-    evaluate_on_GAICD(model, only_human=False, make_square = True, make_square_type = 'naive', user_study = True, subjects_preserving = False)
+    evaluate_on_GAICD(model, only_human=False, make_square = True, make_square_type = 'outpaint', user_study = True, subjects_preserving = True)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
