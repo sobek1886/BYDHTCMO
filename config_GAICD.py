@@ -62,8 +62,8 @@ class Config:
     visualize_heat_map    = True
 
     make_square = True
-    make_square_type = 'outpaint' #['naive', 'outpaint']
-    subjects_preserving = True
+    make_square_type = 'naive' #['naive', 'outpaint']
+    subjects_preserving = False
 
     use_rod_feature = True
     reduced_dim = 32

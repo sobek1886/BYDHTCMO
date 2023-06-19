@@ -362,8 +362,8 @@ if __name__ == '__main__':
     cfg.content_preserve_type = 'gcn'
     cfg.only_content_preserve = False
     cfg.make_square = True
-    cfg.make_square_type = 'outpaint' #['naive', 'outpaint']
-    cfg.subjects_preserving = True
+    cfg.make_square_type = 'naive' #['naive', 'outpaint']
+    cfg.subjects_preserving = False
 
     model = HumanCentricCroppingModel(loadweights=False, cfg=cfg)
     #model.load_state_dict(torch.load('/content/Fork-Human-Centric-Image-Cropping/experiments/GAICD_PA_CP_repeat8/checkpoints/best-human_srcc.pth'))
@@ -373,7 +373,7 @@ if __name__ == '__main__':
     model = model.eval().to(device)
 
     cfg.create_path_visual()
-    evaluate_on_GAICD(model, only_human=False, make_square = True, make_square_type = 'outpaint', user_study = True, subjects_preserving = True)
+    evaluate_on_GAICD(model, only_human=False, make_square = True, make_square_type = 'naive', user_study = True, subjects_preserving = False)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)

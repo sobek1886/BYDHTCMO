@@ -17,7 +17,7 @@ class BoundingBox:
         return self.coordinates
 
 class RegionDetector:
-    def __init__(self, image, make_square = False, threshold = 0.7, YOLO_confidence = 0.5):
+    def __init__(self, image, make_square = False, threshold = 0.3, YOLO_confidence = 0.5):
          self.input_image = image
          self.make_square = make_square
          self.threshold = threshold
@@ -61,10 +61,25 @@ class RegionDetector:
         return objects_in_region
 
     def calculate_intersection_area(self, obj, region):
-        intersection = np.maximum(0, np.minimum(obj.coordinates, region.coordinates))
-        return BoundingBox(intersection).calculate_area()
+        left1, top1, right1, bottom1 = region.coordinates
+        left2, top2, right2, bottom2 = obj.coordinates
+
+        # Calculate the coordinates of the intersection rectangle
+        intersection_left = max(left1, left2)
+        intersection_top = max(top1, top2)
+        intersection_right = min(right1, right2)
+        intersection_bottom = min(bottom1, bottom2)
+
+        # Check if there is an actual intersection
+        if intersection_right < intersection_left or intersection_bottom < intersection_top:
+          return 0  # No overlap
+        overlap_width = intersection_right - intersection_left
+        overlap_height = intersection_bottom - intersection_top
+        return overlap_width * overlap_height
       
     def adjust_most_important_region(self, objects_in_region, most_important_region):
+      print(most_important_region.coordinates)
+      print(objects_in_region)
       if len(objects_in_region) == 0:
         min_x, min_y, max_x, max_y = most_important_region.coordinates
       elif len(objects_in_region) == 1:
@@ -81,7 +96,7 @@ class RegionDetector:
         min_y = min(most_important_region.coordinates[1], *([obj.coordinates[1] for obj in objects_in_region]))
         max_x = max(most_important_region.coordinates[2], *([obj.coordinates[2] for obj in objects_in_region]))
         max_y = max(most_important_region.coordinates[3], *([obj.coordinates[3] for obj in objects_in_region]))
-      
+      print(min_x, min_y, max_x, max_y)
       if self.make_square:
         width = max_x - min_x
         height = max_y - min_y
@@ -106,31 +121,29 @@ class RegionDetector:
               top_available = min_y
               bot_available = (self.image_height - max_y)
               if (top_available < gap/2):
-                  adjusted_region = np.array([min_x, 0, max_x, (self.image_height - (gap - top_available))], dtype=np.float32)
+                  adjusted_region = np.array([min_x, 0, max_x, (max_y + (gap - top_available))], dtype=np.float32)
               elif (bot_available < gap/2):
-                  adjusted_region = np.array([min_x, (gap - bot_available), max_x, (self.image_height)], dtype=np.float32)
+                  adjusted_region = np.array([min_x, min_y - (gap - bot_available), max_x, (self.image_height)], dtype=np.float32)
               else:
                   adjusted_region = np.array([min_x, (min_y - gap/2), max_x, (max_y + gap/2)], dtype=np.float32)
 
         else:
           gap = height - width
-          top_available = min_y
-          bot_available = (self.image_height - max_y)
-          if gap >= (top_available + bot_available):
+          left_available = min_x
+          right_available = (self.image_width - max_x)
+          if gap >= (left_available + right_available):
               adjusted_region = np.array([0, min_y, self.image_width, max_y], dtype=np.float32)
               '''if new_height != new_width
                   outpaint'''
-
-          #fix here
           else:
-              top_available = min_y
-              bot_available = (self.image_height - max_y)
-              if (top_available < gap/2):
-                  adjusted_region = np.array([min_x, 0, max_x, (self.image_height - (gap - top_available))], dtype=np.float32)
-              elif (bot_available < gap/2):
-                  adjusted_region = np.array([min_x, (gap - bot_available), max_x, (self.image_height)], dtype=np.float32)
+              left_available = min_x
+              right_available = (self.image_width - max_x)
+              if (left_available < gap/2):
+                  adjusted_region = np.array([0, min_y, (max_x + (gap - left_available)), max_y], dtype=np.float32)
+              elif (right_available < gap/2):
+                  adjusted_region = np.array([min_x - (gap - right_available), min_y, self.image_width, max_y], dtype=np.float32)
               else:
-                  adjusted_region = np.array([min_x, (min_y - gap/2), max_x, (max_y + gap/2)], dtype=np.float32)
+                  adjusted_region = np.array([(min_x - gap/2), min_y, (max_x + gap/2), max_y], dtype=np.float32)
 
       else:
         adjusted_region = np.array([
@@ -144,11 +157,8 @@ class RegionDetector:
         
 if __name__ == '__main__':
   # Usage example:
-  #6
-  #most_important_region = [0, 0, 689, 720] #[0, 0, 689, 1024]
-  #7
-  most_important_region = [350, 61, 1003, 753] #[81, 61, 1003, 753]
-  image = "/content/7.png"
+  most_important_region = [200, 0, 689,720] #[0, 0, 689, 1024]
+  image = "/content/10-original.png"
   make_square = True
 
   region_detector = RegionDetector(image, make_square)
