@@ -14,6 +14,7 @@ import math
 import random
 from config_GAICD import cfg
 from generate_new_anchors import generate_anchors_aspect_ratio_specific
+from generate_new_anchors import generate_anchors_aspect_ratio_range
 
 MOS_MEAN = 2.95
 MOS_STD  = 0.8
@@ -371,11 +372,12 @@ class FLMSDataset(Dataset):
 
 class GAICDataset(Dataset):
     def __init__(self, only_human_images=False, split='all',
-                 keep_aspect_ratio=True, only_square_anchors = False, user_study = False):
+                 keep_aspect_ratio=True, use_pdefined_square_anchors = False, user_study = False, new_anchors_ratio = (0.75, 1.34)):
         self.only_human = only_human_images
-        self.only_square_anchors = only_square_anchors
         self.split = split
         self.keep_aspect = keep_aspect_ratio
+        self.use_pdefined_square_anchors = use_pdefined_square_anchors
+        # this defines that custom anchors should be used and that metrics (IoU,ACC,BDE,SRCC) should not be calculated (no ground truth available with custom anchors)
         self.user_study = user_study
         
         self.image_size = cfg.image_size
@@ -383,11 +385,13 @@ class GAICDataset(Dataset):
         self.heat_map_dir = cfg.GAIC_heat_map
         assert os.path.exists(self.image_dir), self.image_dir
         self.human_bboxes = json.load(open(cfg.GAIC_human, 'r'))
-        if self.only_square_anchors:
+        if self.use_pdefined_square_anchors:
           self.annotations  = json.load(open(cfg.GAIC_test_square, 'r'))
           self.data_split = json.load(open(cfg.GAIC_test_square_list, 'r'))
         elif self.user_study:
           self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
+          # new_anchors_ratio[0] <= new anchors ratio < new_anchors_ratio[1]
+          self.new_anchors_ratio = new_anchors_ratio
         else:
           self.annotations  = json.load(open(cfg.GAIC_anno, 'r'))
           self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
@@ -396,7 +400,7 @@ class GAICDataset(Dataset):
                 self.image_list = list(self.human_bboxes.keys())
             else:
                 self.image_list = json.load(open(cfg.GAIC_human_split, 'r'))[self.split]
-        elif self.only_square_anchors:
+        elif self.use_pdefined_square_anchors:
           self.image_list = self.data_split
         else:
             if self.split == 'all':
@@ -476,7 +480,8 @@ class GAICDataset(Dataset):
         hm_w = hm_h = 64
         heat_map = heat_map.resize((hm_w, hm_h))
         if self.user_study:
-          crop = generate_anchors_aspect_ratio_specific(im_width, im_height, (1, 1))
+          #crop = generate_anchors_aspect_ratio_specific(im_width, im_height, (1, 1))
+          crop = generate_anchors_aspect_ratio_range(im_width, im_height, aspect_ratio_range = self.new_anchors_ratio)
           crop = rescale_bbox(crop, ratio_w, ratio_h)
           score = -1
         else:

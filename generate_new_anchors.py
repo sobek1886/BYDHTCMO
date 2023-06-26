@@ -13,7 +13,31 @@ def generate_anchors(im_w, im_h, bins=12):
                 for y2 in range(int(bins / 3 * 2), bins):
                     area = (x2 - x1) * (y2 - y1) / float(bins * bins)
                     aspect_ratio = (y2 - y1) * step_h / ((x2 - x1) * step_w)
-                    if area > 0.4999 and aspect_ratio > 0.5 and aspect_ratio < 2.0:
+                    #if area > 0.4999 and aspect_ratio > 0.5 and aspect_ratio < 2.0:
+                    if area > 0.4999 and aspect_ratio >= 0.75 and aspect_ratio < 1.34:
+                        crop_x1 = int(step_w * (0.5+x1))
+                        crop_y1 = int(step_h * (0.5+y1))
+                        crop_x2 = int(step_w * (0.5 + x2))
+                        crop_y2 = int(step_h * (0.5+y2))
+                        pdefined_anchors.append([crop_x1, crop_y1, crop_x2, crop_y2])
+    pdefined_anchors = np.array(pdefined_anchors).reshape(-1,4)
+    # print('image size:({},{}), obtain {} pre-defined anchors.'.format(
+    #     im_w, im_h, pdefined_anchors.shape[0]))
+    return pdefined_anchors
+
+def generate_anchors_aspect_ratio_range(im_w, im_h, bins=12, aspect_ratio_range = (0.75, 1.34)):
+    assert (im_w > 100) and (im_h > 100), (im_w, im_h)
+    step_h = im_h / bins
+    step_w = im_w / bins
+    pdefined_anchors = []
+    for x1 in range(0, int(bins / 3)):
+        for y1 in range(0, int(bins / 3)):
+            for x2 in range(int(bins / 3 * 2), bins):
+                for y2 in range(int(bins / 3 * 2), bins):
+                    area = (x2 - x1) * (y2 - y1) / float(bins * bins)
+                    aspect_ratio = (y2 - y1) * step_h / ((x2 - x1) * step_w)
+                    #if area > 0.4999 and aspect_ratio > 0.5 and aspect_ratio < 2.0:
+                    if area > 0.4999 and aspect_ratio >= aspect_ratio_range[0] and aspect_ratio < aspect_ratio_range[1]:
                         crop_x1 = int(step_w * (0.5+x1))
                         crop_y1 = int(step_h * (0.5+y1))
                         crop_x2 = int(step_w * (0.5 + x2))

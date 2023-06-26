@@ -113,7 +113,7 @@ def compute_iou_and_disp(gt_crop, pre_crop, im_w, im_h):
     return iou[index].item(), disp[index].item()
 
 
-def evaluate_on_GAICD(model, only_human=True, make_square = False, make_square_type = 'naive', user_study = False, subjects_preserving = False):
+def evaluate_on_GAICD(model, only_human=True, make_square = False, make_square_type = 'naive', use_pdefined_square_anchors = False, new_anchors_ratio = (0.75, 1.34), user_study = False, subjects_preserving = False):
     model.eval()
     print('='*5, 'Evaluating on GAICD dataset', '='*5)
     srcc_list = []
@@ -122,7 +122,7 @@ def evaluate_on_GAICD(model, only_human=True, make_square = False, make_square_t
     count = 0
     test_dataset = GAICDataset(only_human_images=only_human,
                                split='test',
-                               keep_aspect_ratio=cfg.keep_aspect_ratio, only_square_anchors = make_square, user_study = user_study)
+                               keep_aspect_ratio=cfg.keep_aspect_ratio, use_pdefined_square_anchors = use_pdefined_square_anchors, new_anchors_ratio = new_anchors_ratio, user_study = user_study)
     test_loader  = torch.utils.data.DataLoader(
                         test_dataset, batch_size=1,
                         shuffle=False, num_workers=cfg.num_workers,
