@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-06-28T08:07:45.141Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" etag="l7JxRGErkYviTXAlImFK" version="21.5.1" type="github">
+<mxfile host="app.diagrams.net" modified="2023-06-28T08:20:47.169Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" etag="bBt7fT6EsJaByfBZ5_Ae" version="21.5.1" type="github">
   <diagram name="Page-1" id="dD4qSxTyb3Q1aRbLcb0a">
     <mxGraphModel dx="1397" dy="797" grid="0" gridSize="5" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
       <root>
@@ -105,6 +105,24 @@
         </mxCell>
         <mxCell id="W99N5dghaN8DPbElHies-47" value="Case 2c" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="30" y="665" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HjYwqH8ET5TT-9HMaKof-3" value="Square, nothing left to do" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="475" y="420" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HjYwqH8ET5TT-9HMaKof-4" value="" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-checkmark-round-128.png" vertex="1" parent="1">
+          <mxGeometry x="505" y="440" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="HjYwqH8ET5TT-9HMaKof-5" value="Square, nothing left to do" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="475" y="536" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HjYwqH8ET5TT-9HMaKof-6" value="" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-checkmark-round-128.png" vertex="1" parent="1">
+          <mxGeometry x="505" y="556" width="40" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="HjYwqH8ET5TT-9HMaKof-11" value="Square, nothing left to do" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="475" y="650" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="HjYwqH8ET5TT-9HMaKof-12" value="" style="shape=image;html=1;verticalAlign=top;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;imageAspect=0;aspect=fixed;image=https://cdn4.iconfinder.com/data/icons/ionicons/512/icon-checkmark-round-128.png" vertex="1" parent="1">
+          <mxGeometry x="505" y="670" width="40" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
