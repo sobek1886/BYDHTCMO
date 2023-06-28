@@ -373,7 +373,7 @@ if __name__ == '__main__':
     model = model.eval().to(device)
 
     cfg.create_path_visual()
-    evaluate_on_GAICD(model, only_human=False, make_square = True, make_square_type = 'outpaint', user_study = True, subjects_preserving = True)
+    evaluate_on_GAICD(model, only_human=False, new_anchors_ratio = (1, 1), make_square = True, make_square_type = 'naive', user_study = True, subjects_preserving = False)
     # evaluate_on_GAICD(model, only_human=True)
     # evaluate_on_FCDB_and_FLMS(model, dataset='FCDB&FLMS', only_human=True)
     #evaluate_on_FCDB_and_FLMS(model, dataset='FCDB', only_human=False)
