@@ -62,8 +62,10 @@ class Config:
     visualize_heat_map    = True
 
     make_square = True
-    make_square_type = 'naive' #['naive', 'outpaint']
-    subjects_preserving = False
+    make_square_type = 'outpaint' #['naive', 'outpaint']
+    subjects_preserving = True
+    use_pdefined_square_anchors = False
+    new_anchors_ratio = (0.75, 1.34)
 
     use_rod_feature = True
     reduced_dim = 32
@@ -140,7 +142,8 @@ class Config:
       vis_prefix += '-SP'
     if use_partition_aware:
       vis_prefix += '-PA'
-
+    if use_pdefined_square_anchors == False:
+      vis_prefix += f'-{new_anchors_ratio[0]}-{new_anchors_ratio[1]}'
 
     vis_name = vis_prefix
     vis_path = os.path.join(vis_root, vis_prefix)

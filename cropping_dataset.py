@@ -389,7 +389,8 @@ class GAICDataset(Dataset):
           self.annotations  = json.load(open(cfg.GAIC_test_square, 'r'))
           self.data_split = json.load(open(cfg.GAIC_test_square_list, 'r'))
         elif self.user_study:
-          self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
+          self.data_split = json.load(open(cfg.GAIC_test_square_list, 'r'))
+          #self.data_split   = json.load(open(cfg.GAIC_split, 'r'))
           # new_anchors_ratio[0] <= new anchors ratio < new_anchors_ratio[1]
           self.new_anchors_ratio = new_anchors_ratio
         else:

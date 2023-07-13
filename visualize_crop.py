@@ -1,4 +1,3 @@
-
 import os
 import cv2
 import numpy as np
@@ -17,7 +16,7 @@ from config_GAICD import cfg
 from cropping_dataset import generate_partition_mask, generate_target_size_crop_mask, rescale_bbox
 from test_pretrained import get_pdefined_anchor
 from cropping_model import HumanCentricCroppingModel
-#from outpaint import outpaint_image
+from outpaint import outpaint_image
 import sys
 
 device = torch.device('cuda:{}'.format(cfg.gpu_id))
@@ -69,8 +68,8 @@ def crop_image(image):
         hbox = self.human_bboxes[image_name]
         hbox = rescale_bbox(hbox, ratio_w, ratio_h)
     else:'''
-    #hbox = np.array([[-1, -1, -1, -1]]).astype(np.float32)
-    hbox = np.array([[1, 28, 486, 549]]).astype(np.float32)
+    hbox = np.array([[-1, -1, -1, -1]]).astype(np.float32)
+    #hbox = np.array([[1, 28, 486, 549]]).astype(np.float32)
     #hbox = rescale_bbox(hbox, ratio_w, ratio_h)
     
 
